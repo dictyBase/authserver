@@ -104,13 +104,13 @@ func runServer(c *cli.Context) {
 			gchain := apollo.New(mw.ParamsMiddleware, mw.GoogleMiddleware).
 				With(context.Background()).
 				ThenFunc(jt.JwtHandler)
-			mux.Handle("/token/google", gchain)
+			mux.Handle("/tokens/google", gchain)
 		case "facebook":
 			mw := middleware.GetFacebookMiddleware(config)
 			gchain := apollo.New(mw.ParamsMiddleware, mw.FacebookMiddleware).
 				With(context.Background()).
 				ThenFunc(jt.JwtHandler)
-			mux.Handle("/token/facebook", gchain)
+			mux.Handle("/tokens/facebook", gchain)
 		default:
 			log.Fatalf("provider %q is not supported\n", name)
 		}
