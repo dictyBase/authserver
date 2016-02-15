@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"time"
@@ -71,7 +72,7 @@ type Logger struct {
 	clock timer
 }
 
-// NewMiddleware returns a new *Middleware, yay!
+// NewLogger returns a new *Logger
 func NewLogger() *Logger {
 	log := logrus.New()
 	log.Level = logrus.InfoLevel
@@ -83,6 +84,13 @@ func NewLogger() *Logger {
 		logStarting: true,
 		clock:       &realClock{},
 	}
+}
+
+// NewFileLogger writes to a file
+func NewFileLogger(w io.Writer) *Logger {
+	logger := NewLogger()
+	logger.Logrus.Out = w
+	return logger
 }
 
 // NewCustomMiddleware builds a *Logger with the given level and formatter
