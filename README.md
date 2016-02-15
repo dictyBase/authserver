@@ -89,6 +89,7 @@ COMMANDS:
    help, h		Shows a list of commands or help for one command
    
 GLOBAL OPTIONS:
+   --log, -l            Name of the log file(optional), default goes to stderr
    --help, -h		show help
    --version, -v	print the version
    
