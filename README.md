@@ -10,13 +10,20 @@ something that developed with [React](http://facebook.github.io/react/index.html
 * [Google](https://developers.google.com/identity/protocols/OAuth2UserAgent)
 * [Facebook](https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow)
 
+#Install
+```
+go get github.com/dictybase/authserver
+```
+
 #Usage
 ##Generate keys
 
-*Using the subcommand*
+####Using the subcommand
+
 ```authserver generate-keys --private app.rsa --public app.rsa.pub```
 
-*Openssl command line*
+####Openssl command line
+
 ```
 openssl genrsa -out keys/app.rsa 2048
 openssl rsa -in keys/app.rsa -pubout -out keys/app.rsa.pub 
@@ -47,7 +54,7 @@ The server by default will run in port `9999`
 * `/tokens/facebook` : For facebook
 
 ### Required paramater*s
-*`client_id` : Available with registered application for every provider.
+* `client_id` : Available with registered application for every provider.
 * `scopes` : Should be available from providers, mostly the value is `email`
 * `redirect_url` : As given in the registered application
 * `state` : As passed to the provider during the first login
