@@ -129,6 +129,7 @@ func runServer(c *cli.Context) {
 func readSecretConfig(c *cli.Context) (*middleware.ProvidersSecret, error) {
 	var provider *middleware.ProvidersSecret
 	reader, err := os.Open(c.String("config"))
+	defer reader.Close()
 	if err != nil {
 		return provider, err
 	}
@@ -177,10 +178,12 @@ func generateKeys(c *cli.Context) {
 
 	// open files
 	prvWriter, err := os.Create(c.String("private"))
+	defer prvWriter.Close()
 	if err != nil {
 		log.Fatalf("unable to create private key file %q\n", err)
 	}
 	pubWriter, err := os.Create(c.String("public"))
+	defer pubWriter.Close()
 	if err != nil {
 		log.Fatalf("unable to create public key file %q\n", err)
 	}
