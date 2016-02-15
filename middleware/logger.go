@@ -3,6 +3,7 @@ package middleware
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -75,6 +76,7 @@ func NewLogger() *Logger {
 	log := logrus.New()
 	log.Level = logrus.InfoLevel
 	log.Formatter = &logrus.TextFormatter{FullTimestamp: true}
+	log.Out = os.Stderr
 	return &Logger{
 		Logrus:      log,
 		Name:        "web",
@@ -88,6 +90,7 @@ func NewCustomMiddleware(level logrus.Level, formatter logrus.Formatter, name st
 	log := logrus.New()
 	log.Level = level
 	log.Formatter = formatter
+	log.Out = os.Stderr
 	return &Logger{
 		Logrus:      log,
 		Name:        name,
@@ -130,10 +133,10 @@ func (l *Logger) LoggerMiddleware(h http.Handler) http.Handler {
 		if l.logStarting {
 			entry.Info("started handling request")
 		}
-		h.ServeHTTP(w, r)
+		res := &LogResponseWriter{ResponseWriter: w}
+		h.ServeHTTP(res, r)
 
 		latency := l.clock.Since(start)
-		res := w.(*LogResponseWriter)
 		entry.WithFields(logrus.Fields{
 			"status":      res.Status(),
 			"text_status": http.StatusText(res.Status()),
