@@ -18,7 +18,7 @@ import (
 )
 
 // The list of providers supported by the server
-var DefaultProviders = []string{"google", "facebook"}
+var DefaultProviders = []string{"google", "facebook", "linkedin"}
 
 // Runs the http server
 func RunServer(c *cli.Context) {
@@ -81,6 +81,16 @@ func RunServer(c *cli.Context) {
 				With(context.Background()).
 				ThenFunc(jt.JwtHandler)
 			mux.Handle("/tokens/facebook", fchain)
+		case "linkedin":
+			linkeinMw := middlewares.GetLinkedinMiddleware(config)
+			lchain := apollo.New(
+				apollo.Wrap(cors.Handler),
+				apollo.Wrap(logMw.LoggerMiddleware),
+				linkeinMw.ParamsMiddleware,
+				linkeinMw.LinkedInMiddleware).
+				With(context.Background()).
+				ThenFunc(jt.JwtHandler)
+			mux.Handle("/tokens/linkedin", lchain)
 		default:
 			log.Fatalf("provider %q is not supported\n", name)
 		}

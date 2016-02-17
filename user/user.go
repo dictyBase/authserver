@@ -6,6 +6,7 @@ package user // import "github.com/dictybase/authserver/user"
 var (
 	Google   = "https://www.googleapis.com/userinfo/v2/me"
 	Facebook = "https://graph.facebook.com/v2.5/me?fields=name,email"
+	LinkedIn = "https://api.linkedin.com/v1/people/~?format=json"
 )
 
 type GoogleUser struct {
@@ -23,6 +24,17 @@ type FacebookUser struct {
 	Id    int    `json:"id"`
 	Name  string `json:"name"`
 	Email string `json:"email"`
+}
+
+type LinkedInUser struct {
+	FirstName                  string `json:"firstName"`
+	Headline                   string `json:"headline"`
+	ID                         string `json:"id"`
+	LastName                   string `json:"lastName"`
+	SiteStandardProfileRequest struct {
+		URL string `json:"url"`
+	} `json:"siteStandardProfileRequest"`
+	EmailAddress string `json:"emailAddress"`
 }
 
 type NormalizedUser struct {

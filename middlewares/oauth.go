@@ -12,6 +12,7 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
 	"golang.org/x/oauth2/google"
+	"golang.org/x/oauth2/linkedin"
 )
 
 type ProvidersSecret struct {
@@ -135,6 +136,47 @@ func (m *OauthMiddleware) FacebookMiddleware(h apollo.Handler) apollo.Handler {
 		user := &user.NormalizedUser{
 			Name:  facebook.Name,
 			Email: facebook.Email,
+		}
+		h.ServeHTTP(context.WithValue(ctx, "user", user), w, r)
+	}
+	return apollo.HandlerFunc(fn)
+}
+
+func GetLinkedinMiddleware(p *ProvidersSecret) *OauthMiddleware {
+	return &OauthMiddleware{
+		ClientSecret: p.LinkedIn,
+		Endpoint:     linkedin.Endpoint,
+	}
+}
+
+func (m *OauthMiddleware) LinkedInMiddleware(h apollo.Handler) apollo.Handler {
+	fn := func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		oauthConf, ok := ctx.Value("config").(*OauthConfig)
+		if !ok {
+			http.Error(w, "unable to retrieve context", http.StatusInternalServerError)
+			return
+		}
+		oauthConf.Config.ClientSecret = m.ClientSecret
+		oauthConf.Config.Endpoint = m.Endpoint
+		token, err := oauthConf.Exchange(oauth2.NoContext, oauthConf.Code)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		oauthClient := oauthConf.Client(oauth2.NoContext, token)
+		resp, err := oauthClient.Get(user.LinkedIn)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		var linkedin user.LinkedInUser
+		if err := json.NewDecoder(resp.Body).Decode(&linkedin); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		user := &user.NormalizedUser{
+			Name:  fmt.Sprintf("%q %q", linkedin.FirstName, linkedin.LastName),
+			Email: linkedin.EmailAddress,
 		}
 		h.ServeHTTP(context.WithValue(ctx, "user", user), w, r)
 	}
