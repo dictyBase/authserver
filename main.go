@@ -11,7 +11,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "authserver"
 	app.Usage = "oauth server that provides endpoints for managing authentication"
-	app.Version = "1.0.0"
+	app.Version = "2.0.0"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:  "log,l",

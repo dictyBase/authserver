@@ -12,6 +12,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dictybase/authserver/handlers"
 	"github.com/dictybase/authserver/middlewares"
+	"github.com/rs/cors"
 	"golang.org/x/net/context"
 	"gopkg.in/codegangsta/cli.v1"
 )
@@ -51,12 +52,19 @@ func RunServer(c *cli.Context) {
 	} else {
 		logMw = middlewares.NewLogger()
 	}
+
+	cors := cors.New(cors.Options{
+		AllowedOrigins:     []string{"*"},
+		AllowCredentials:   true,
+		OptionsPassthrough: true,
+	})
 	mux := http.NewServeMux()
 	for _, name := range DefaultProviders {
 		switch name {
 		case "google":
 			googleMw := middlewares.GetGoogleMiddleware(config)
 			gchain := apollo.New(
+				apollo.Wrap(cors.Handler),
 				apollo.Wrap(logMw.LoggerMiddleware),
 				googleMw.ParamsMiddleware,
 				googleMw.GoogleMiddleware).
@@ -66,6 +74,7 @@ func RunServer(c *cli.Context) {
 		case "facebook":
 			fbookMw := middlewares.GetFacebookMiddleware(config)
 			fchain := apollo.New(
+				apollo.Wrap(cors.Handler),
 				apollo.Wrap(logMw.LoggerMiddleware),
 				fbookMw.ParamsMiddleware,
 				fbookMw.FacebookMiddleware).
