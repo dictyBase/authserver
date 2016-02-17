@@ -1,3 +1,5 @@
+[![gorelease](https://dn-gorelease.qbox.me/gorelease-download-blue.svg)](https://gobuild.io/dictyBase/authserver/master)
+
 #authserver
 An authorization server to generate [jwt](http://jwt.io) token in exchange
 for temporary [authorization token](https://tools.ietf.org/html/rfc6749#section-1.4)  
@@ -11,6 +13,10 @@ something that developed with [React](http://facebook.github.io/react/index.html
 * [Facebook](https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow)
 
 #Install
+* From release page.
+* From gorelease build(check the badge above)
+* Or go get
+
 ```
 go get github.com/dictybase/authserver
 ```
