@@ -175,7 +175,7 @@ func (m *OauthMiddleware) LinkedInMiddleware(h apollo.Handler) apollo.Handler {
 			return
 		}
 		user := &user.NormalizedUser{
-			Name:  fmt.Sprintf("%q %q", linkedin.FirstName, linkedin.LastName),
+			Name:  fmt.Sprintf("%s %s", linkedin.FirstName, linkedin.LastName),
 			Email: linkedin.EmailAddress,
 		}
 		h.ServeHTTP(context.WithValue(ctx, "user", user), w, r)

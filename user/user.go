@@ -6,7 +6,7 @@ package user // import "github.com/dictybase/authserver/user"
 var (
 	Google   = "https://www.googleapis.com/userinfo/v2/me"
 	Facebook = "https://graph.facebook.com/v2.5/me?fields=name,email"
-	LinkedIn = "https://api.linkedin.com/v1/people/~?format=json"
+	LinkedIn = "https://api.linkedin.com/v1/people/~:(first-name,last-name,email-address)?format=json"
 )
 
 type GoogleUser struct {
