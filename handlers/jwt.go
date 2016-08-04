@@ -31,15 +31,14 @@ func (j *Jwt) JwtHandler(ctx context.Context, w http.ResponseWriter, r *http.Req
 		http.Error(w, "unable to retrieve user from context", http.StatusInternalServerError)
 		return
 	}
-	// create a signer for rsa 256
-	t := jwt.New(jwt.GetSigningMethod("RS512"))
-	// reserved claims
-	t.Claims["iss"] = "dictyBase"
-	t.Claims["sub"] = "dictyBase login token"
-	t.Claims["exp"] = time.Now().Add(time.Hour * 240).Unix()
-	t.Claims["iat"] = time.Now().Unix()
-	// custom claim
-	t.Claims["user"] = user
+	// create a signer for rsa 512
+	t := jwt.NewWithClaims(jwt.SigningMethodRS512, jwt.MapClaims{
+		"iss":  "dictyBase",
+		"sub":  "dictyBase login token",
+		"exp":  time.Now().Add(time.Hour * 240).Unix(),
+		"iat":  time.Now().Unix(),
+		"user": user, // custom claim
+	})
 	token, err := t.SignedString(j.SignKey)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
