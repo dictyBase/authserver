@@ -21,31 +21,31 @@ import (
 var DefaultProviders = []string{"google", "facebook", "linkedin"}
 
 // Runs the http server
-func RunServer(c *cli.Context) {
+func RunServer(c *cli.Context) error {
 	if !c.IsSet("config") {
-		log.Fatalln("config file is not provided")
+		return fmt.Errorf("config file is not provided")
 	}
 	if !c.IsSet("public-key") {
-		log.Fatalln("public key file is not provided")
+		return fmt.Errorf("public key file is not provided")
 	}
 	if !c.IsSet("private-key") {
-		log.Fatalln("private key file is not provided")
+		return fmt.Errorf("private key file is not provided")
 	}
 
 	config, err := readSecretConfig(c)
 	if err != nil {
-		log.Fatalf("Unable to secret config file %q\n", err)
+		return fmt.Errorf("Unable to secret config file %q\n", err)
 	}
 	jt, err := parseJwtKeys(c)
 	if err != nil {
-		log.Fatalf("Unable to parse keys %q\n", err)
+		return fmt.Errorf("Unable to parse keys %q\n", err)
 	}
 
 	var logMw *middlewares.Logger
 	if c.IsSet("log") {
 		w, err := os.Create(c.String("log"))
 		if err != nil {
-			log.Fatalf("cannot open log file %q\n", err)
+			return fmt.Errorf("cannot open log file %q\n", err)
 		}
 		defer w.Close()
 		logMw = middlewares.NewFileLogger(w)
@@ -92,12 +92,12 @@ func RunServer(c *cli.Context) {
 				ThenFunc(jt.JwtHandler)
 			mux.Handle("/tokens/linkedin", lchain)
 		default:
-			log.Fatalf("provider %q is not supported\n", name)
+			return fmt.Errorf("provider %q is not supported\n", name)
 		}
 	}
 	log.Printf("Starting web server on port %d\n", c.Int("port"))
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", c.Int("port")), mux))
-
+	return nil
 }
 
 // Reads the configuration file containing the various client secret keys
