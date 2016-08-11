@@ -23,29 +23,29 @@ var DefaultProviders = []string{"google", "facebook", "linkedin"}
 // Runs the http server
 func RunServer(c *cli.Context) error {
 	if !c.IsSet("config") {
-		return fmt.Errorf("config file is not provided")
+		return cli.NewExitError("config file is not provided", 2)
 	}
 	if !c.IsSet("public-key") {
-		return fmt.Errorf("public key file is not provided")
+		return cli.NewExitError("public key file is not provided", 2)
 	}
 	if !c.IsSet("private-key") {
-		return fmt.Errorf("private key file is not provided")
+		return cli.NewExitError("private key file is not provided", 2)
 	}
 
 	config, err := readSecretConfig(c)
 	if err != nil {
-		return fmt.Errorf("Unable to secret config file %q\n", err)
+		return cli.NewExitError(fmt.Sprintf("Unable to secret config file %q\n", err), 2)
 	}
 	jt, err := parseJwtKeys(c)
 	if err != nil {
-		return fmt.Errorf("Unable to parse keys %q\n", err)
+		return cli.NewExitError(fmt.Sprintf("Unable to parse keys %q\n", err), 2)
 	}
 
 	var logMw *middlewares.Logger
 	if c.IsSet("log") {
 		w, err := os.Create(c.String("log"))
 		if err != nil {
-			return fmt.Errorf("cannot open log file %q\n", err)
+			return cli.NewExitError(fmt.Sprintf("cannot open log file %q\n", err), 2)
 		}
 		defer w.Close()
 		logMw = middlewares.NewFileLogger(w)
@@ -92,7 +92,7 @@ func RunServer(c *cli.Context) error {
 				ThenFunc(jt.JwtHandler)
 			mux.Handle("/tokens/linkedin", lchain)
 		default:
-			return fmt.Errorf("provider %q is not supported\n", name)
+			return cli.NewExitError(fmt.Sprintf("provider %q is not supported\n", name), 2)
 		}
 	}
 	log.Printf("Starting web server on port %d\n", c.Int("port"))

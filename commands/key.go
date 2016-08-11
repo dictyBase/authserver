@@ -15,31 +15,31 @@ import (
 func GenerateKeys(c *cli.Context) error {
 	// validate
 	if !c.IsSet("public") {
-		return fmt.Errorf("public key output file is not provided")
+		return cli.NewExitError("public key output file is not provided", 2)
 	}
 	if !c.IsSet("private") {
-		return fmt.Errorf("private key output file is not provided")
+		return cli.NewExitError("private key output file is not provided", 2)
 	}
 
 	// open files
 	prvWriter, err := os.Create(c.String("private"))
 	defer prvWriter.Close()
 	if err != nil {
-		return fmt.Errorf("unable to create private key file %q\n", err)
+		return cli.NewExitError(fmt.Sprintf("unable to create private key file %q\n", err), 2)
 	}
 	pubWriter, err := os.Create(c.String("public"))
 	defer pubWriter.Close()
 	if err != nil {
-		return fmt.Errorf("unable to create public key file %q\n", err)
+		return cli.NewExitError(fmt.Sprintf("unable to create public key file %q\n", err), 2)
 	}
 
 	// generate and write to files
 	private, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
-		return fmt.Errorf("error in generating private key %q\n", err)
+		return cli.NewExitError(fmt.Sprintf("error in generating private key %q\n", err), 2)
 	}
 	if err := private.Validate(); err != nil {
-		return fmt.Errorf("error in validating private key %q\n", err)
+		return cli.NewExitError(fmt.Sprintf("error in validating private key %q\n", err), 2)
 	}
 	prvPem := &pem.Block{
 		Type:  "RSA PRIVATE KEY",
@@ -48,18 +48,17 @@ func GenerateKeys(c *cli.Context) error {
 	public := private.Public()
 	pubCont, err := x509.MarshalPKIXPublicKey(public)
 	if err != nil {
-		return fmt.Errorf("unable to marshall private key %q\n", err)
+		return cli.NewExitError(fmt.Sprintf("unable to marshall private key %q\n", err), 2)
 	}
 	pubPem := &pem.Block{
 		Type:  "RSA PUBLIC KEY",
 		Bytes: pubCont,
 	}
 	if err := pem.Encode(prvWriter, prvPem); err != nil {
-		return fmt.Errorf("unable to write private key %q\n", err)
+		return cli.NewExitError(fmt.Sprintf("unable to write private key %q\n", err), 2)
 	}
 	if err := pem.Encode(pubWriter, pubPem); err != nil {
-		return fmt.Errorf("unable to write public key %q\n", err)
+		return cli.NewExitError(fmt.Sprintf("unable to write public key %q\n", err), 2)
 	}
 	return nil
-
 }
