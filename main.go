@@ -17,6 +17,10 @@ func main() {
 			Name:  "log,l",
 			Usage: "Name of the log file(optional), default goes to stderr",
 		},
+		cli.StringFlag{
+			Name:  "log-format,l",
+			Usage: "Format of the log output,could be either of text or json, default is json",
+		},
 	}
 	app.Commands = []cli.Command{
 		{

@@ -10,9 +10,12 @@ import (
 
 	"github.com/cyclopsci/apollo"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/dictyBase/go-middlewares/middlewares/logrus"
 	"github.com/dictybase/authserver/handlers"
 	"github.com/dictybase/authserver/middlewares"
-	"github.com/rs/cors"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/cors"
 	"golang.org/x/net/context"
 	"gopkg.in/codegangsta/cli.v1"
 )
@@ -47,24 +50,21 @@ func RunServer(c *cli.Context) error {
 		return cli.NewExitError(fmt.Sprintf("Unable to parse keys %q\n", err), 2)
 	}
 
-	var logMw *middlewares.Logger
-	if c.IsSet("log") {
-		w, err := os.Create(c.String("log"))
-		if err != nil {
-			return cli.NewExitError(fmt.Sprintf("cannot open log file %q\n", err), 2)
-		}
-		defer w.Close()
-		logMw = middlewares.NewFileLogger(w)
-	} else {
-		logMw = middlewares.NewLogger()
+	loggerMw, err := getLoggerMiddleware(c)
+	if err != nil {
+		return cli.NewExitError(fmt.Sprintf("unable to get logger middlware %s", err), 2)
 	}
-
 	cors := cors.New(cors.Options{
 		AllowedOrigins:     []string{"*"},
 		AllowCredentials:   true,
 		OptionsPassthrough: true,
 	})
-	mux := http.NewServeMux()
+
+	r := chi.NewRouter()
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(loggerMw.Middleware)
+	r.User(middleware.Recoverer)
 	for _, name := range DefaultProviders {
 		switch name {
 		case "google":
@@ -150,4 +150,26 @@ func parseJwtKeys(c *cli.Context) (*handlers.Jwt, error) {
 	jh.VerifyKey = pubkey
 	jh.SignKey = pkey
 	return jh, err
+}
+
+func getLoggerMiddleware(c *cli.Context) (*logrus.Logger, error) {
+	var logger *logrus.Logger
+	if c.GlobalIsSet("log") {
+		w, err := os.Open(c.GlobalString("log"))
+		if err != nil {
+			return logger, fmt.Errorf("could not open log file for writing %s\n", err)
+		}
+		if c.GlobalString("log-format") == "json" {
+			logger = logrus.NewJSONFileLogger(w)
+		} else {
+			logger = logrus.NewFileLogger(w)
+		}
+	} else {
+		if c.GlobalString("log-format") == "json" {
+			logger = logrus.NewJSONLogger()
+		} else {
+			logger = logrus.NewLogger()
+		}
+	}
+	return logger, nil
 }
