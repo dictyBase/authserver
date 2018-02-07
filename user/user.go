@@ -15,7 +15,7 @@ type GoogleUser struct {
 	Gender        string `json:"gender"`
 	Email         string `json:"email"`
 	GivenName     string `json:"given_name"`
-	ID            string `json:"id"`
+	Id            string `json:"id"`
 	VerifiedEmail bool   `json:"verified_email"`
 	Picture       string `json:"picture"`
 }
@@ -29,7 +29,7 @@ type FacebookUser struct {
 type LinkedInUser struct {
 	FirstName                  string `json:"firstName"`
 	Headline                   string `json:"headline"`
-	ID                         string `json:"id"`
+	Id                         string `json:"id"`
 	LastName                   string `json:"lastName"`
 	SiteStandardProfileRequest struct {
 		URL string `json:"url"`
@@ -40,4 +40,5 @@ type LinkedInUser struct {
 type NormalizedUser struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
+	Id    string `json:"id"`
 }

@@ -103,6 +103,7 @@ func (m *OauthMiddleware) GoogleMiddleware(h http.Handler) http.Handler {
 		user := &user.NormalizedUser{
 			Name:  google.Name,
 			Email: google.Email,
+			Id:    google.Id,
 		}
 		newCtx := context.WithValue(ctx, "user", user)
 		h.ServeHTTP(w, r.WithContext(newCtx))
@@ -146,6 +147,7 @@ func (m *OauthMiddleware) FacebookMiddleware(h http.Handler) http.Handler {
 		user := &user.NormalizedUser{
 			Name:  facebook.Name,
 			Email: facebook.Email,
+			Id:    facebook.Id,
 		}
 		newCtx := context.WithValue(ctx, "user", user)
 		h.ServeHTTP(w, r.WithContext(newCtx))
@@ -189,6 +191,7 @@ func (m *OauthMiddleware) LinkedInMiddleware(h http.Handler) http.Handler {
 		user := &user.NormalizedUser{
 			Name:  fmt.Sprintf("%s %s", linkedin.FirstName, linkedin.LastName),
 			Email: linkedin.EmailAddress,
+			Id:    linkedin.Id,
 		}
 		newCtx := context.WithValue(ctx, "user", user)
 		h.ServeHTTP(w, r.WithContext(newCtx))
