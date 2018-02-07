@@ -1,14 +1,15 @@
 package middlewares
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/cyclopsci/apollo"
+	"github.com/dictyBase/apihelpers/apherror"
 	"github.com/dictybase/authserver/user"
-	"golang.org/x/net/context"
+
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
 	"golang.org/x/oauth2/google"
@@ -34,15 +35,20 @@ type OauthMiddleware struct {
 	ConfigParam  string
 }
 
-func (m *OauthMiddleware) ParamsMiddleware(h apollo.Handler) apollo.Handler {
+func (m *OauthMiddleware) ParamsMiddleware(h http.Handler) http.Handler {
 	if len(m.ConfigParam) == 0 {
 		m.ConfigParam = "config"
 	}
-	fn := func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		for _, p := range []string{"client_id", "scopes", "redirect_url", "state", "code"} {
 			v := r.FormValue(p)
 			if len(v) == 0 {
-				http.Error(w, fmt.Sprintf("missing param %q", p), http.StatusBadRequest)
+				apherror.JSONAPIError(w,
+					apherror.ErrQueryParam.New(
+						fmt.Sprintf("missing param %q", p),
+					),
+				)
 				return
 			}
 		}
@@ -55,9 +61,10 @@ func (m *OauthMiddleware) ParamsMiddleware(h apollo.Handler) apollo.Handler {
 			State: r.FormValue("state"),
 			Code:  r.FormValue("code"),
 		}
-		h.ServeHTTP(context.WithValue(ctx, m.ConfigParam, oauthConf), w, r)
+		newCtx := context.WithValue(ctx, m.ConfigParam, oauthConf)
+		h.ServeHTTP(w, r.WithContext(newCtx))
 	}
-	return apollo.HandlerFunc(fn)
+	return http.HandlerFunc(fn)
 }
 
 func GetGoogleMiddleware(p *ProvidersSecret) *OauthMiddleware {
@@ -67,38 +74,40 @@ func GetGoogleMiddleware(p *ProvidersSecret) *OauthMiddleware {
 	}
 }
 
-func (m *OauthMiddleware) GoogleMiddleware(h apollo.Handler) apollo.Handler {
-	fn := func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (m *OauthMiddleware) GoogleMiddleware(h http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		oauthConf, ok := ctx.Value("config").(*OauthConfig)
 		if !ok {
-			http.Error(w, "unable to retrieve context", http.StatusInternalServerError)
+			apherror.JSONAPIError(w, apherror.ErrReqContext.New("no oauth config in request context"))
 			return
 		}
 		oauthConf.Config.ClientSecret = m.ClientSecret
 		oauthConf.Config.Endpoint = m.Endpoint
 		token, err := oauthConf.Exchange(oauth2.NoContext, oauthConf.Code)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			apherror.JSONAPIError(w, apherror.ErrOuthExchange.New(err.Error()))
 			return
 		}
 		oauthClient := oauthConf.Client(oauth2.NoContext, token)
 		resp, err := oauthClient.Get(user.Google)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			apherror.JSONAPIError(w, apherror.ErrUserRetrieval.New(err.Error()))
 			return
 		}
 		var google user.GoogleUser
 		if err := json.NewDecoder(resp.Body).Decode(&google); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			apherror.JSONAPIError(w, apherror.ErrJSONEncoding.New(err.Error()))
 			return
 		}
 		user := &user.NormalizedUser{
 			Name:  google.Name,
 			Email: google.Email,
 		}
-		h.ServeHTTP(context.WithValue(ctx, "user", user), w, r)
+		newCtx := context.WithValue(ctx, "user", user)
+		h.ServeHTTP(w, r.WithContext(newCtx))
 	}
-	return apollo.HandlerFunc(fn)
+	return http.HandlerFunc(fn)
 }
 
 func GetFacebookMiddleware(p *ProvidersSecret) *OauthMiddleware {
@@ -108,38 +117,40 @@ func GetFacebookMiddleware(p *ProvidersSecret) *OauthMiddleware {
 	}
 }
 
-func (m *OauthMiddleware) FacebookMiddleware(h apollo.Handler) apollo.Handler {
-	fn := func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (m *OauthMiddleware) FacebookMiddleware(h http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		oauthConf, ok := ctx.Value("config").(*OauthConfig)
 		if !ok {
-			http.Error(w, "unable to retrieve context", http.StatusInternalServerError)
+			apherror.JSONAPIError(w, apherror.ErrReqContext.New("no oauth config in request context"))
 			return
 		}
 		oauthConf.Config.ClientSecret = m.ClientSecret
 		oauthConf.Config.Endpoint = m.Endpoint
 		token, err := oauthConf.Exchange(oauth2.NoContext, oauthConf.Code)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			apherror.JSONAPIError(w, apherror.ErrOuthExchange.New(err.Error()))
 			return
 		}
 		oauthClient := oauthConf.Client(oauth2.NoContext, token)
 		resp, err := oauthClient.Get(user.Facebook)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			apherror.JSONAPIError(w, apherror.ErrUserRetrieval.New(err.Error()))
 			return
 		}
 		var facebook user.GoogleUser
 		if err := json.NewDecoder(resp.Body).Decode(&facebook); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			apherror.JSONAPIError(w, apherror.ErrJSONEncoding.New(err.Error()))
 			return
 		}
 		user := &user.NormalizedUser{
 			Name:  facebook.Name,
 			Email: facebook.Email,
 		}
-		h.ServeHTTP(context.WithValue(ctx, "user", user), w, r)
+		newCtx := context.WithValue(ctx, "user", user)
+		h.ServeHTTP(w, r.WithContext(newCtx))
 	}
-	return apollo.HandlerFunc(fn)
+	return http.HandlerFunc(fn)
 }
 
 func GetLinkedinMiddleware(p *ProvidersSecret) *OauthMiddleware {
@@ -149,36 +160,38 @@ func GetLinkedinMiddleware(p *ProvidersSecret) *OauthMiddleware {
 	}
 }
 
-func (m *OauthMiddleware) LinkedInMiddleware(h apollo.Handler) apollo.Handler {
+func (m *OauthMiddleware) LinkedInMiddleware(h http.Handler) http.Handler {
 	fn := func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		oauthConf, ok := ctx.Value("config").(*OauthConfig)
 		if !ok {
-			http.Error(w, "unable to retrieve context", http.StatusInternalServerError)
+			apherror.JSONAPIError(w, apherror.ErrReqContext.New("no oauth config in request context"))
 			return
 		}
 		oauthConf.Config.ClientSecret = m.ClientSecret
 		oauthConf.Config.Endpoint = m.Endpoint
 		token, err := oauthConf.Exchange(oauth2.NoContext, oauthConf.Code)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			apherror.JSONAPIError(w, apherror.ErrOuthExchange.New(err.Error()))
 			return
 		}
 		oauthClient := oauthConf.Client(oauth2.NoContext, token)
 		resp, err := oauthClient.Get(user.LinkedIn)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			apherror.JSONAPIError(w, apherror.ErrUserRetrieval.New(err.Error()))
 			return
 		}
 		var linkedin user.LinkedInUser
 		if err := json.NewDecoder(resp.Body).Decode(&linkedin); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			apherror.JSONAPIError(w, apherror.ErrJSONEncoding.New(err.Error()))
 			return
 		}
 		user := &user.NormalizedUser{
 			Name:  fmt.Sprintf("%s %s", linkedin.FirstName, linkedin.LastName),
 			Email: linkedin.EmailAddress,
 		}
-		h.ServeHTTP(context.WithValue(ctx, "user", user), w, r)
+		newCtx := context.WithValue(ctx, "user", user)
+		h.ServeHTTP(w, r.WithContext(newCtx))
 	}
-	return apollo.HandlerFunc(fn)
+	return http.HandlerFunc(fn)
 }
