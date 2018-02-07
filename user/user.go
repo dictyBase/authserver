@@ -1,7 +1,7 @@
 // package user provides url constants and structures
 // for handling user information
 // from various oauth providers
-package user // import "github.com/dictybase/authserver/user"
+package user
 
 var (
 	Google   = "https://www.googleapis.com/userinfo/v2/me"

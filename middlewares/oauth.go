@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/dictyBase/apihelpers/apherror"
-	"github.com/dictybase/authserver/user"
+	"github.com/dictyBase/authserver/user"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/facebook"
@@ -86,7 +86,7 @@ func (m *OauthMiddleware) GoogleMiddleware(h http.Handler) http.Handler {
 		oauthConf.Config.Endpoint = m.Endpoint
 		token, err := oauthConf.Exchange(oauth2.NoContext, oauthConf.Code)
 		if err != nil {
-			apherror.JSONAPIError(w, apherror.ErrOuthExchange.New(err.Error()))
+			apherror.JSONAPIError(w, apherror.ErrOauthExchange.New(err.Error()))
 			return
 		}
 		oauthClient := oauthConf.Client(oauth2.NoContext, token)
@@ -130,7 +130,7 @@ func (m *OauthMiddleware) FacebookMiddleware(h http.Handler) http.Handler {
 		oauthConf.Config.Endpoint = m.Endpoint
 		token, err := oauthConf.Exchange(oauth2.NoContext, oauthConf.Code)
 		if err != nil {
-			apherror.JSONAPIError(w, apherror.ErrOuthExchange.New(err.Error()))
+			apherror.JSONAPIError(w, apherror.ErrOauthExchange.New(err.Error()))
 			return
 		}
 		oauthClient := oauthConf.Client(oauth2.NoContext, token)
@@ -163,7 +163,7 @@ func GetLinkedinMiddleware(p *ProvidersSecret) *OauthMiddleware {
 }
 
 func (m *OauthMiddleware) LinkedInMiddleware(h http.Handler) http.Handler {
-	fn := func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		oauthConf, ok := ctx.Value("config").(*OauthConfig)
 		if !ok {
@@ -174,7 +174,7 @@ func (m *OauthMiddleware) LinkedInMiddleware(h http.Handler) http.Handler {
 		oauthConf.Config.Endpoint = m.Endpoint
 		token, err := oauthConf.Exchange(oauth2.NoContext, oauthConf.Code)
 		if err != nil {
-			apherror.JSONAPIError(w, apherror.ErrOuthExchange.New(err.Error()))
+			apherror.JSONAPIError(w, apherror.ErrOauthExchange.New(err.Error()))
 			return
 		}
 		oauthClient := oauthConf.Client(oauth2.NoContext, token)
