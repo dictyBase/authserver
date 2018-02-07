@@ -8,20 +8,16 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/cyclopsci/apollo"
+	"gopkg.in/urfave/cli.v1"
+
 	"github.com/dgrijalva/jwt-go"
+	"github.com/dictyBase/authserver/handlers"
+	"github.com/dictyBase/authserver/middlewares"
 	"github.com/dictyBase/go-middlewares/middlewares/logrus"
-	"github.com/dictybase/authserver/handlers"
-	"github.com/dictybase/authserver/middlewares"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
-	"golang.org/x/net/context"
-	"gopkg.in/codegangsta/cli.v1"
 )
-
-// The list of providers supported by the server
-var DefaultProviders = []string{"google", "facebook", "linkedin"}
 
 // Runs the http server
 func RunServer(c *cli.Context) error {
@@ -64,45 +60,26 @@ func RunServer(c *cli.Context) error {
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(loggerMw.Middleware)
-	r.User(middleware.Recoverer)
-	for _, name := range DefaultProviders {
-		switch name {
-		case "google":
-			googleMw := middlewares.GetGoogleMiddleware(config)
-			gchain := apollo.New(
-				apollo.Wrap(cors.Handler),
-				apollo.Wrap(logMw.LoggerMiddleware),
-				googleMw.ParamsMiddleware,
-				googleMw.GoogleMiddleware).
-				With(context.Background()).
-				ThenFunc(jt.JwtHandler)
-			mux.Handle("/tokens/google", gchain)
-		case "facebook":
-			fbookMw := middlewares.GetFacebookMiddleware(config)
-			fchain := apollo.New(
-				apollo.Wrap(cors.Handler),
-				apollo.Wrap(logMw.LoggerMiddleware),
-				fbookMw.ParamsMiddleware,
-				fbookMw.FacebookMiddleware).
-				With(context.Background()).
-				ThenFunc(jt.JwtHandler)
-			mux.Handle("/tokens/facebook", fchain)
-		case "linkedin":
-			linkeinMw := middlewares.GetLinkedinMiddleware(config)
-			lchain := apollo.New(
-				apollo.Wrap(cors.Handler),
-				apollo.Wrap(logMw.LoggerMiddleware),
-				linkeinMw.ParamsMiddleware,
-				linkeinMw.LinkedInMiddleware).
-				With(context.Background()).
-				ThenFunc(jt.JwtHandler)
-			mux.Handle("/tokens/linkedin", lchain)
-		default:
-			return cli.NewExitError(fmt.Sprintf("provider %q is not supported\n", name), 2)
-		}
-	}
+	r.Use(middleware.Recoverer)
+	r.Use(cors.Handler)
+	googleMw := middlewares.GetGoogleMiddleware(config)
+	fbookMw := middlewares.GetFacebookMiddleware(config)
+	linkedInMw := middlewares.GetLinkedinMiddleware(config)
+	r.Route("/tokens", func(r chi.Router) {
+		r.With(googleMw.ParamsMiddleware).
+			With(googleMw.GoogleMiddleware).
+			Get("/google", jt.JwtHandler)
+
+		r.With(fbookMw.ParamsMiddleware).
+			With(fbookMw.FacebookMiddleware).
+			Get("/facebook", jt.JwtHandler)
+
+		r.With(linkedInMw.ParamsMiddleware).
+			With(linkedInMw.LinkedInMiddleware).
+			Get("/linkedin", jt.JwtHandler)
+	})
 	log.Printf("Starting web server on port %d\n", c.Int("port"))
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", c.Int("port")), mux))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", c.Int("port")), r))
 	return nil
 }
 
