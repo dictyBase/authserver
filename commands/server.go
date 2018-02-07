@@ -129,6 +129,7 @@ func parseJwtKeys(c *cli.Context) (*handlers.Jwt, error) {
 	return jh, err
 }
 
+// Gets a logrus logger middlware, can output to a file, default is stderr
 func getLoggerMiddleware(c *cli.Context) (*logrus.Logger, error) {
 	var logger *logrus.Logger
 	if c.GlobalIsSet("log") {
