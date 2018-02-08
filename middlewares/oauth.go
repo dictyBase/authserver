@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/dictyBase/apihelpers/apherror"
+	"github.com/dictyBase/authserver/oauth2/orcid"
 	"github.com/dictyBase/authserver/user"
 
 	"golang.org/x/oauth2"
@@ -21,6 +22,7 @@ type ProvidersSecret struct {
 	Facebook string `json:"facebook"`
 	Google   string `json:"google"`
 	LinkedIn string `json:"linkedin"`
+	Orcid    string `json:"orcid"`
 }
 
 type OauthConfig struct {
@@ -62,6 +64,60 @@ func (m *OauthMiddleware) ParamsMiddleware(h http.Handler) http.Handler {
 			Code:  r.FormValue("code"),
 		}
 		newCtx := context.WithValue(ctx, m.ConfigParam, oauthConf)
+		h.ServeHTTP(w, r.WithContext(newCtx))
+	}
+	return http.HandlerFunc(fn)
+}
+
+func GetOrcidMiddleware(p *ProvidersSecret) *OauthMiddleware {
+	return &OauthMiddleware{
+		ClientSecret: p.Orcid,
+		Endpoint:     orcid.Endpoint,
+	}
+}
+
+func (m *OauthMiddleware) OrcidMiddleware(h http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		oauthConf, ok := ctx.Value("config").(*OauthConfig)
+		if !ok {
+			apherror.JSONAPIError(w, apherror.ErrReqContext.New("no oauth config in request context"))
+			return
+		}
+		oauthConf.Config.ClientSecret = m.ClientSecret
+		oauthConf.Config.Endpoint = m.Endpoint
+		token, err := oauthConf.Exchange(oauth2.NoContext, oauthConf.Code)
+		if err != nil {
+			apherror.JSONAPIError(w, apherror.ErrOauthExchange.New(err.Error()))
+			return
+		}
+		oauthClient := oauthConf.Client(oauth2.NoContext, token)
+		oauthReq, _ := http.NewRequest(
+			"GET",
+			fmt.Sprintf(
+				"%s/%s/%s", user.Orcid, token.Extra("orcid"), "/person",
+			),
+			nil,
+		)
+		oauthReq.Header.Add("Accept", "application/json")
+		resp, err := oauthClient.Do(oauthReq)
+		if err != nil {
+			apherror.JSONAPIError(w, apherror.ErrUserRetrieval.New(err.Error()))
+			return
+		}
+		var orcid user.OrcidUser
+		if err := json.NewDecoder(resp.Body).Decode(&orcid); err != nil {
+			apherror.JSONAPIError(w, apherror.ErrJSONEncoding.New(err.Error()))
+			return
+		}
+		user := &user.NormalizedUser{
+			Name: fmt.Sprintf("%s %s", orcid.Name.GivenNames.Value, orcid.Name.FamilyName.Value),
+			Id:   orcid.Path,
+		}
+		if len(orcid.Emails.Email) > 0 {
+			user.Email = fmt.Sprint(orcid.Emails.Email[0])
+		}
+		newCtx := context.WithValue(ctx, "user", user)
 		h.ServeHTTP(w, r.WithContext(newCtx))
 	}
 	return http.HandlerFunc(fn)
