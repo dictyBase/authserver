@@ -3,12 +3,14 @@ package handlers
 import (
 	"crypto/rsa"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/dictyBase/apihelpers/apherror"
 	"github.com/dictyBase/authserver/user"
+	"github.com/go-chi/jwtauth"
 	"github.com/rs/xid"
 )
 
@@ -35,12 +37,17 @@ type UserToken struct {
 }
 
 func (j *Jwt) JwtFinalHandler(w http.ResponseWriter, r *http.Request) {
-
+	_, _, err := jwtauth.FromContext(r.Context())
+	if err != nil {
+		apherror.JSONAPIError(w, apherror.ErrReqContext.New("unable to retrieve jwt from context for validation"))
+		return
+	}
+	fmt.Fprintf(w, "jwt is %s", "valid")
 }
 
 func (j *Jwt) JwtHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	user, ok := ctx.Value(contextKeyUser).(*user.NormalizedUser)
+	user, ok := ctx.Value(ContextKeyUser).(*user.NormalizedUser)
 	if !ok {
 		apherror.JSONAPIError(w, apherror.ErrReqContext.New("unable to retrieve %s from context", "user"))
 		return

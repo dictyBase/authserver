@@ -25,8 +25,8 @@ func (c contextKey) String() string {
 }
 
 var (
-	ContextKeyConfig = contextkey("config")
-	ConttextKeyUser  = contextkey("user")
+	ContextKeyConfig = contextKey("config")
+	ContextKeyUser   = contextKey("user")
 )
 
 type ProvidersSecret struct {

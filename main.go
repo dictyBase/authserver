@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/dictybase/authserver/commands"
-	"gopkg.in/codegangsta/cli.v1"
+	"github.com/dictyBase/authserver/commands"
+	"gopkg.in/urfave/cli.v1"
 )
 
 func main() {
