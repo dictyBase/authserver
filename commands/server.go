@@ -70,19 +70,19 @@ func RunServer(c *cli.Context) error {
 	r.Route("/tokens", func(r chi.Router) {
 		r.With(googleMw.ParamsMiddleware).
 			With(googleMw.GoogleMiddleware).
-			Get("/google", jt.JwtHandler)
+			Post("/google", jt.JwtHandler)
 
 		r.With(fbookMw.ParamsMiddleware).
 			With(fbookMw.FacebookMiddleware).
-			Get("/facebook", jt.JwtHandler)
+			Post("/facebook", jt.JwtHandler)
 
 		r.With(linkedInMw.ParamsMiddleware).
 			With(linkedInMw.LinkedInMiddleware).
-			Get("/linkedin", jt.JwtHandler)
+			Post("/linkedin", jt.JwtHandler)
 
 		r.With(OrcidMw.ParamsMiddleware).
 			With(OrcidMw.OrcidMiddleware).
-			Get("/linkedin", jt.JwtHandler)
+			Post("/linkedin", jt.JwtHandler)
 
 		tokenAuth := jwtauth.New("RS512", jt.SignKey, jt.VerifyKey)
 		r.With(jwtauth.Verifier(tokenAuth), jwtauth.Authenticator).

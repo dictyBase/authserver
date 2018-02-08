@@ -57,8 +57,8 @@ authserver serve --config app.json --public-key keys/app.rsa.pub --private-key k
 ```
 The server by default will run in port `9999`
 
-## HTTP post to the server
-### Available endpoints for token exchange
+## HTTP requests to the server
+### Available endpoints for token exchange[POST request]
 * `/tokens/google` : For google
 * `/tokens/facebook` : For facebook
 * `/tokens/linkedin` : For linkedin
@@ -83,7 +83,7 @@ curl -X POST -d @params.txt http://localhost:9999/tokens/google
 ```
 The above should a return a `json web token`.
 
-### Endpoint for validation
+### Endpoint for validation[GET request]
 * `/tokens/validate`: - Will validate the given *jwt* given in the `Authorization: BEARER` HTTP request header.
 
 ##Command line
