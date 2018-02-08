@@ -17,6 +17,7 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/jwtauth"
 )
 
 // Runs the http server
@@ -65,6 +66,7 @@ func RunServer(c *cli.Context) error {
 	googleMw := middlewares.GetGoogleMiddleware(config)
 	fbookMw := middlewares.GetFacebookMiddleware(config)
 	linkedInMw := middlewares.GetLinkedinMiddleware(config)
+	OrcidMw := middlewares.GetLinkedinMiddleware(config)
 	r.Route("/tokens", func(r chi.Router) {
 		r.With(googleMw.ParamsMiddleware).
 			With(googleMw.GoogleMiddleware).
@@ -77,6 +79,14 @@ func RunServer(c *cli.Context) error {
 		r.With(linkedInMw.ParamsMiddleware).
 			With(linkedInMw.LinkedInMiddleware).
 			Get("/linkedin", jt.JwtHandler)
+
+		r.With(OrcidMw.ParamsMiddleware).
+			With(OrcidMw.OrcidMiddleware).
+			Get("/linkedin", jt.JwtHandler)
+
+		tokenAuth := jwtauth.New("RS512", jt.SignKey, jt.VerifyKey)
+		r.With(jwtauth.Verifier(tokenAuth), jwtauth.Authenticator).
+			Get("/validate", jt.JwtFinalHandler)
 	})
 	log.Printf("Starting web server on port %d\n", c.Int("port"))
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", c.Int("port")), r))
