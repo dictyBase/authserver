@@ -3,7 +3,8 @@
 #authserver
 An authorization server to generate [jwt](http://jwt.io) token in exchange
 for temporary [authorization token](https://tools.ietf.org/html/rfc6749#section-1.4)  
-from various [oauth2](http://oauth.net/2/) providres(google, facebook, github, linkedin etc ..)
+from various [oauth2](http://oauth.net/2/) providres(google, facebook, github, linkedin etc ..).
+The server also validate the *jwt* token.
 
 This server is exclusively designed to work with a single page(SPA) frontend web application, for example
 something that developed with [React](http://facebook.github.io/react/index.html).
@@ -11,6 +12,8 @@ something that developed with [React](http://facebook.github.io/react/index.html
 #Supported providers
 * [Google](https://developers.google.com/identity/protocols/OAuth2UserAgent)
 * [Facebook](https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow)
+* [LinkedIn](https://developer.linkedin.com/docs/oauth2)
+* [ORCiD](https://members.orcid.org/api/about-orcid-apis)
 
 #Install
 * From release page.
@@ -48,16 +51,18 @@ __Format__
 }
 
 
-##Run server
+## Run server
 ```
 authserver serve --config app.json --public-key keys/app.rsa.pub --private-key keys/app.rsa
 ```
 The server by default will run in port `9999`
 
-##HTTP post to the server
-### Available endpoints
+## HTTP post to the server
+### Available endpoints for token exchange
 * `/tokens/google` : For google
 * `/tokens/facebook` : For facebook
+* `/tokens/linkedin` : For linkedin
+* `/tokens/orcid` : For orcid
 
 ### Required paramater*s
 * `client_id` : Available with registered application for every provider.
@@ -78,6 +83,9 @@ curl -X POST -d @params.txt http://localhost:9999/tokens/google
 ```
 The above should a return a `json web token`.
 
+### Endpoint for validation
+* `/tokens/validate`: - Will validate the given *jwt* given in the `Authorization: BEARER` HTTP request header.
+
 ##Command line
 ```
 NAME:
@@ -87,18 +95,19 @@ USAGE:
    authserver [global options] command [command options] [arguments...]
 
 VERSION:
-   1.0.0
+   2.0.0
 
 COMMANDS:
-   run			runs the auth server
-   generate-keys	generate rsa key pairs(public and private keys) in pem format
-   help, h		Shows a list of commands or help for one command
-   
+     run            runs the auth server
+     generate-keys  generate rsa key pairs(public and private keys) in pem format
+     help, h        Shows a list of commands or help for one command
+
 GLOBAL OPTIONS:
-   --log, -l            Name of the log file(optional), default goes to stderr
-   --help, -h		show help
-   --version, -v	print the version
-   
+   --log value, -l value  Name of the log file(optional), default goes to stderr
+   --log-format value     Format of the log output,could be either of text or json, default is json
+   --help, -h             show help
+   --version, -v          print the version
+
 ```
 
 #### Subcommands
