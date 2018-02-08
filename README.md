@@ -1,6 +1,6 @@
 [![gorelease](https://dn-gorelease.qbox.me/gorelease-download-blue.svg)](https://gobuild.io/dictyBase/authserver/master)
 
-#authserver
+# authserver
 An authorization server to generate [jwt](http://jwt.io) token in exchange
 for temporary [authorization token](https://tools.ietf.org/html/rfc6749#section-1.4)  
 from various [oauth2](http://oauth.net/2/) providres(google, facebook, github, linkedin etc ..).
@@ -9,13 +9,13 @@ The server also validate the *jwt* token.
 This server is exclusively designed to work with a single page(SPA) frontend web application, for example
 something that developed with [React](http://facebook.github.io/react/index.html).
 
-#Supported providers
+# Supported providers
 * [Google](https://developers.google.com/identity/protocols/OAuth2UserAgent)
 * [Facebook](https://developers.facebook.com/docs/facebook-login/manually-build-a-login-flow)
 * [LinkedIn](https://developer.linkedin.com/docs/oauth2)
 * [ORCiD](https://members.orcid.org/api/about-orcid-apis)
 
-#Install
+# Install
 * From release page.
 * From gorelease build(check the badge above)
 * Or go get
@@ -24,21 +24,21 @@ something that developed with [React](http://facebook.github.io/react/index.html
 go get github.com/dictybase/authserver
 ```
 
-#Usage
-##Generate keys
+# Usage
+## Generate keys
 
-####Using the subcommand
+#### Using the subcommand
 
 ```authserver generate-keys --private app.rsa --public app.rsa.pub```
 
-####Openssl command line
+#### Openssl command line
 
 ```
 openssl genrsa -out keys/app.rsa 2048
 openssl rsa -in keys/app.rsa -pubout -out keys/app.rsa.pub 
 ```
 
-##Create configuration file
+## Create configuration file
 The json formatted configuration file should contain `client secret key` for various providers. The secret key
 could be obtained by registering a web application with the respective providers.
 
@@ -53,7 +53,7 @@ __Format__
 
 ## Run server
 ```
-authserver serve --config app.json --public-key keys/app.rsa.pub --private-key keys/app.rsa
+authserver run --config app.json --public-key keys/app.rsa.pub --private-key keys/app.rsa
 ```
 The server by default will run in port `9999`
 
@@ -86,7 +86,7 @@ The above should a return a `json web token`.
 ### Endpoint for validation[GET request]
 * `/tokens/validate`: - Will validate the given *jwt* given in the `Authorization: BEARER` HTTP request header.
 
-##Command line
+## Command line
 ```
 NAME:
    authserver - oauth server that provides endpoints for managing authentication
