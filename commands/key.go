@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 
-	"gopkg.in/codegangsta/cli.v1"
+	"gopkg.in/urfave/cli.v1"
 )
 
 // Generate RSA public and private keys in PEM format
