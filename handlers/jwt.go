@@ -12,6 +12,17 @@ import (
 	"github.com/rs/xid"
 )
 
+type contextKey string
+
+// String output the details of context key
+func (c contextKey) String() string {
+	return "pagination context key " + string(c)
+}
+
+var (
+	ContextKeyUser = contextKey("user")
+)
+
 type Jwt struct {
 	VerifyKey     *rsa.PublicKey
 	SignKey       *rsa.PrivateKey
@@ -23,13 +34,13 @@ type UserToken struct {
 	User  *user.NormalizedUser `json:"user"`
 }
 
+func (j *Jwt) JwtFinalHandler(w http.ResponseWriter, r *http.Request) {
+
+}
+
 func (j *Jwt) JwtHandler(w http.ResponseWriter, r *http.Request) {
-	// default value for user paramater
-	if len(j.UserParamater) == 0 {
-		j.UserParamater = "user"
-	}
 	ctx := r.Context()
-	user, ok := ctx.Value(j.UserParamater).(*user.NormalizedUser)
+	user, ok := ctx.Value(contextKeyUser).(*user.NormalizedUser)
 	if !ok {
 		apherror.JSONAPIError(w, apherror.ErrReqContext.New("unable to retrieve %s from context", "user"))
 		return
