@@ -47,7 +47,7 @@ func (j *Jwt) JwtFinalHandler(w http.ResponseWriter, r *http.Request) {
 
 func (j *Jwt) JwtHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	user, ok := ctx.Value(ContextKeyUser).(*user.NormalizedUser)
+	user, ok := ctx.Value(user.ContextKeyUser).(*user.NormalizedUser)
 	if !ok {
 		apherror.JSONAPIError(w, apherror.ErrReqContext.New("unable to retrieve %s from context", "user"))
 		return

@@ -17,18 +17,6 @@ import (
 	"golang.org/x/oauth2/linkedin"
 )
 
-type contextKey string
-
-// String output the details of context key
-func (c contextKey) String() string {
-	return "pagination context key " + string(c)
-}
-
-var (
-	ContextKeyConfig = contextKey("config")
-	ContextKeyUser   = contextKey("user")
-)
-
 type ProvidersSecret struct {
 	Github   string `json:"github"`
 	Facebook string `json:"facebook"`
@@ -72,7 +60,7 @@ func (m *OauthMiddleware) ParamsMiddleware(h http.Handler) http.Handler {
 			State: r.FormValue("state"),
 			Code:  r.FormValue("code"),
 		}
-		newCtx := context.WithValue(ctx, ContextKeyConfig, oauthConf)
+		newCtx := context.WithValue(ctx, user.ContextKeyConfig, oauthConf)
 		h.ServeHTTP(w, r.WithContext(newCtx))
 	}
 	return http.HandlerFunc(fn)
@@ -88,7 +76,7 @@ func GetOrcidMiddleware(p *ProvidersSecret) *OauthMiddleware {
 func (m *OauthMiddleware) OrcidMiddleware(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		oauthConf, ok := ctx.Value(ContextKeyConfig).(*OauthConfig)
+		oauthConf, ok := ctx.Value(user.ContextKeyConfig).(*OauthConfig)
 		if !ok {
 			apherror.JSONAPIError(w, apherror.ErrReqContext.New("no oauth config in request context"))
 			return
@@ -119,14 +107,14 @@ func (m *OauthMiddleware) OrcidMiddleware(h http.Handler) http.Handler {
 			apherror.JSONAPIError(w, apherror.ErrJSONEncoding.New(err.Error()))
 			return
 		}
-		user := &user.NormalizedUser{
+		u := &user.NormalizedUser{
 			Name: fmt.Sprintf("%s %s", orcid.Name.GivenNames.Value, orcid.Name.FamilyName.Value),
 			Id:   orcid.Path,
 		}
 		if len(orcid.Emails.Email) > 0 {
-			user.Email = fmt.Sprint(orcid.Emails.Email[0])
+			u.Email = fmt.Sprint(orcid.Emails.Email[0])
 		}
-		newCtx := context.WithValue(ctx, ContextKeyUser, user)
+		newCtx := context.WithValue(ctx, user.ContextKeyUser, u)
 		h.ServeHTTP(w, r.WithContext(newCtx))
 	}
 	return http.HandlerFunc(fn)
@@ -142,7 +130,7 @@ func GetGoogleMiddleware(p *ProvidersSecret) *OauthMiddleware {
 func (m *OauthMiddleware) GoogleMiddleware(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		oauthConf, ok := ctx.Value(ContextKeyConfig).(*OauthConfig)
+		oauthConf, ok := ctx.Value(user.ContextKeyConfig).(*OauthConfig)
 		if !ok {
 			apherror.JSONAPIError(w, apherror.ErrReqContext.New("no oauth config in request context"))
 			return
@@ -165,12 +153,12 @@ func (m *OauthMiddleware) GoogleMiddleware(h http.Handler) http.Handler {
 			apherror.JSONAPIError(w, apherror.ErrJSONEncoding.New(err.Error()))
 			return
 		}
-		user := &user.NormalizedUser{
+		u := &user.NormalizedUser{
 			Name:  google.Name,
 			Email: google.Email,
 			Id:    google.Id,
 		}
-		newCtx := context.WithValue(ctx, ContextKeyUser, user)
+		newCtx := context.WithValue(r.Context(), user.ContextKeyUser, u)
 		h.ServeHTTP(w, r.WithContext(newCtx))
 	}
 	return http.HandlerFunc(fn)
@@ -186,7 +174,7 @@ func GetFacebookMiddleware(p *ProvidersSecret) *OauthMiddleware {
 func (m *OauthMiddleware) FacebookMiddleware(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		oauthConf, ok := ctx.Value(ContextKeyConfig).(*OauthConfig)
+		oauthConf, ok := ctx.Value(user.ContextKeyConfig).(*OauthConfig)
 		if !ok {
 			apherror.JSONAPIError(w, apherror.ErrReqContext.New("no oauth config in request context"))
 			return
@@ -209,12 +197,12 @@ func (m *OauthMiddleware) FacebookMiddleware(h http.Handler) http.Handler {
 			apherror.JSONAPIError(w, apherror.ErrJSONEncoding.New(err.Error()))
 			return
 		}
-		user := &user.NormalizedUser{
+		u := &user.NormalizedUser{
 			Name:  facebook.Name,
 			Email: facebook.Email,
 			Id:    facebook.Id,
 		}
-		newCtx := context.WithValue(ctx, ContextKeyUser, user)
+		newCtx := context.WithValue(ctx, user.ContextKeyUser, u)
 		h.ServeHTTP(w, r.WithContext(newCtx))
 	}
 	return http.HandlerFunc(fn)
@@ -230,7 +218,7 @@ func GetLinkedinMiddleware(p *ProvidersSecret) *OauthMiddleware {
 func (m *OauthMiddleware) LinkedInMiddleware(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		oauthConf, ok := ctx.Value(ContextKeyConfig).(*OauthConfig)
+		oauthConf, ok := ctx.Value(user.ContextKeyConfig).(*OauthConfig)
 		if !ok {
 			apherror.JSONAPIError(w, apherror.ErrReqContext.New("no oauth config in request context"))
 			return
@@ -253,12 +241,12 @@ func (m *OauthMiddleware) LinkedInMiddleware(h http.Handler) http.Handler {
 			apherror.JSONAPIError(w, apherror.ErrJSONEncoding.New(err.Error()))
 			return
 		}
-		user := &user.NormalizedUser{
+		u := &user.NormalizedUser{
 			Name:  fmt.Sprintf("%s %s", linkedin.FirstName, linkedin.LastName),
 			Email: linkedin.EmailAddress,
 			Id:    linkedin.Id,
 		}
-		newCtx := context.WithValue(ctx, ContextKeyUser, user)
+		newCtx := context.WithValue(ctx, user.ContextKeyUser, u)
 		h.ServeHTTP(w, r.WithContext(newCtx))
 	}
 	return http.HandlerFunc(fn)

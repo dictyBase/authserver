@@ -10,6 +10,18 @@ var (
 	Orcid    = "https://pub.orcid.org/v2.1"
 )
 
+type contextKey string
+
+// String output the details of context key
+func (c contextKey) String() string {
+	return "pagination context key " + string(c)
+}
+
+var (
+	ContextKeyConfig = contextKey("config")
+	ContextKeyUser   = contextKey("user")
+)
+
 type GoogleUser struct {
 	FamilyName    string `json:"family_name"`
 	Name          string `json:"name"`

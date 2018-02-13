@@ -67,26 +67,33 @@ func RunServer(c *cli.Context) error {
 	fbookMw := middlewares.GetFacebookMiddleware(config)
 	linkedInMw := middlewares.GetLinkedinMiddleware(config)
 	OrcidMw := middlewares.GetLinkedinMiddleware(config)
-	r.Route("/tokens", func(r chi.Router) {
-		r.With(googleMw.ParamsMiddleware).
-			With(googleMw.GoogleMiddleware).
-			Post("/google", jt.JwtHandler)
+	r.Route("/tokens/google", func(r chi.Router) {
+		r.Use(googleMw.ParamsMiddleware, googleMw.GoogleMiddleware)
+		r.Post("/", jt.JwtHandler)
+	})
 
+	r.Route("/tokens/facebook", func(r chi.Router) {
 		r.With(fbookMw.ParamsMiddleware).
 			With(fbookMw.FacebookMiddleware).
-			Post("/facebook", jt.JwtHandler)
+			Post("/", jt.JwtHandler)
+	})
 
+	r.Route("/tokens/linkedin", func(r chi.Router) {
 		r.With(linkedInMw.ParamsMiddleware).
 			With(linkedInMw.LinkedInMiddleware).
-			Post("/linkedin", jt.JwtHandler)
+			Post("/", jt.JwtHandler)
+	})
 
+	r.Route("/tokens/orcid", func(r chi.Router) {
 		r.With(OrcidMw.ParamsMiddleware).
 			With(OrcidMw.OrcidMiddleware).
-			Post("/linkedin", jt.JwtHandler)
+			Post("/", jt.JwtHandler)
+	})
 
+	r.Route("/tokens/validate", func(r chi.Router) {
 		tokenAuth := jwtauth.New("RS512", jt.SignKey, jt.VerifyKey)
 		r.With(jwtauth.Verifier(tokenAuth), jwtauth.Authenticator).
-			Get("/validate", jt.JwtFinalHandler)
+			Get("/", jt.JwtFinalHandler)
 	})
 	log.Printf("Starting web server on port %d\n", c.Int("port"))
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", c.Int("port")), r))
