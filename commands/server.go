@@ -66,7 +66,7 @@ func RunServer(c *cli.Context) error {
 	googleMw := middlewares.GetGoogleMiddleware(config)
 	fbookMw := middlewares.GetFacebookMiddleware(config)
 	linkedInMw := middlewares.GetLinkedinMiddleware(config)
-	OrcidMw := middlewares.GetLinkedinMiddleware(config)
+	OrcidMw := middlewares.GetOrcidMiddleware(config)
 	r.Route("/tokens/google", func(r chi.Router) {
 		r.Use(googleMw.ParamsMiddleware, googleMw.GoogleMiddleware)
 		r.Post("/", jt.JwtHandler)
