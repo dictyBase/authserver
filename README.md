@@ -1,5 +1,3 @@
-[![gorelease](https://dn-gorelease.qbox.me/gorelease-download-blue.svg)](https://gobuild.io/dictyBase/authserver/master)
-
 # authserver
 An authorization server to generate [jwt](http://jwt.io) token in exchange
 for temporary [authorization token](https://tools.ietf.org/html/rfc6749#section-1.4)  
