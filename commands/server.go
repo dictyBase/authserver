@@ -154,16 +154,16 @@ func getLoggerMiddleware(c *cli.Context) (*logrus.Logger, error) {
 		if err != nil {
 			return logger, fmt.Errorf("could not open log file for writing %s\n", err)
 		}
-		if c.GlobalString("log-format") == "json" {
-			logger = logrus.NewJSONFileLogger(w)
-		} else {
+		if c.GlobalString("log-format") == "text" {
 			logger = logrus.NewFileLogger(w)
+		} else {
+			logger = logrus.NewJSONFileLogger(w)
 		}
 	} else {
-		if c.GlobalString("log-format") == "json" {
-			logger = logrus.NewJSONLogger()
-		} else {
+		if c.GlobalString("log-format") == "text" {
 			logger = logrus.NewLogger()
+		} else {
+			logger = logrus.NewJSONLogger()
 		}
 	}
 	return logger, nil
