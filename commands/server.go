@@ -63,6 +63,10 @@ func RunServer(c *cli.Context) error {
 	r.Use(loggerMw.Middleware)
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler)
+	// Default health check
+	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("okay"))
+	})
 	googleMw := middlewares.GetGoogleMiddleware(config)
 	fbookMw := middlewares.GetFacebookMiddleware(config)
 	linkedInMw := middlewares.GetLinkedinMiddleware(config)
