@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/dictyBase/authserver/commands"
+	"github.com/dictyBase/authserver/validate"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -27,6 +28,7 @@ func main() {
 			Name:   "run",
 			Usage:  "runs the auth server",
 			Action: commands.RunServer,
+			Before: validate.ValidateRunArgs,
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:   "config, c",

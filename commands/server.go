@@ -22,22 +22,6 @@ import (
 
 // Runs the http server
 func RunServer(c *cli.Context) error {
-	if !c.IsSet("config") {
-		if len(os.Getenv("OAUTH_CONFIG")) == 0 {
-			return cli.NewExitError("config file is not provided", 2)
-		}
-	}
-	if !c.IsSet("public-key") {
-		if len(os.Getenv("JWT_PUBLIC_KEY")) == 0 {
-			return cli.NewExitError("public key file is not provided", 2)
-		}
-	}
-	if !c.IsSet("private-key") {
-		if len(os.Getenv("JWT_PRIVATE_KEY")) == 0 {
-			return cli.NewExitError("private key file is not provided", 2)
-		}
-	}
-
 	config, err := readSecretConfig(c)
 	if err != nil {
 		return cli.NewExitError(fmt.Sprintf("Unable to secret config file %q\n", err), 2)
