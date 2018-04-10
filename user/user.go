@@ -61,7 +61,8 @@ type OrcidUser struct {
 }
 
 type NormalizedUser struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-	Id    string `json:"id"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Id       string `json:"id"`
+	Provider string `json:"provider"`
 }

@@ -109,8 +109,9 @@ func (m *OauthMiddleware) OrcidMiddleware(h http.Handler) http.Handler {
 			return
 		}
 		u := &user.NormalizedUser{
-			Name: orcid.Name,
-			Id:   orcid.Orcid,
+			Name:     orcid.Name,
+			Id:       orcid.Orcid,
+			Provider: "orcid",
 		}
 		newCtx := context.WithValue(ctx, user.ContextKeyUser, u)
 		h.ServeHTTP(w, r.WithContext(newCtx))
@@ -152,9 +153,10 @@ func (m *OauthMiddleware) GoogleMiddleware(h http.Handler) http.Handler {
 			return
 		}
 		u := &user.NormalizedUser{
-			Name:  google.Name,
-			Email: google.Email,
-			Id:    google.Id,
+			Name:     google.Name,
+			Email:    google.Email,
+			Id:       google.Id,
+			Provider: "google",
 		}
 		newCtx := context.WithValue(r.Context(), user.ContextKeyUser, u)
 		h.ServeHTTP(w, r.WithContext(newCtx))
@@ -196,9 +198,10 @@ func (m *OauthMiddleware) FacebookMiddleware(h http.Handler) http.Handler {
 			return
 		}
 		u := &user.NormalizedUser{
-			Name:  facebook.Name,
-			Email: facebook.Email,
-			Id:    facebook.Id,
+			Name:     facebook.Name,
+			Email:    facebook.Email,
+			Id:       facebook.Id,
+			Provider: "facebook",
 		}
 		newCtx := context.WithValue(ctx, user.ContextKeyUser, u)
 		h.ServeHTTP(w, r.WithContext(newCtx))
@@ -240,9 +243,10 @@ func (m *OauthMiddleware) LinkedInMiddleware(h http.Handler) http.Handler {
 			return
 		}
 		u := &user.NormalizedUser{
-			Name:  fmt.Sprintf("%s %s", linkedin.FirstName, linkedin.LastName),
-			Email: linkedin.EmailAddress,
-			Id:    linkedin.Id,
+			Name:     fmt.Sprintf("%s %s", linkedin.FirstName, linkedin.LastName),
+			Email:    linkedin.EmailAddress,
+			Id:       linkedin.Id,
+			Provider: "linkedin",
 		}
 		newCtx := context.WithValue(ctx, user.ContextKeyUser, u)
 		h.ServeHTTP(w, r.WithContext(newCtx))
