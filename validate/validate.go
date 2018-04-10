@@ -21,4 +21,5 @@ func ValidateRunArgs(c *cli.Context) error {
 			)
 		}
 	}
+	return nil
 }
