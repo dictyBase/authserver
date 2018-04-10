@@ -10,7 +10,9 @@ import (
 
 	"google.golang.org/grpc/status"
 
+	"github.com/dictyBase/go-genproto/dictybaseapis/identity"
 	"github.com/dictyBase/go-genproto/dictybaseapis/pubsub"
+	pb "github.com/dictyBase/go-genproto/dictybaseapis/user"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/dictyBase/apihelpers/apherror"
@@ -39,9 +41,10 @@ type Jwt struct {
 	Topics        map[string]string
 }
 
-type UserToken struct {
-	Token string               `json:"token"`
-	User  *user.NormalizedUser `json:"user"`
+type AuthUser struct {
+	Token    string             `json:"token"`
+	Identity *identity.Identity `json:"identity"`
+	User     *pb.User           `json:"user"`
 }
 
 func (j *Jwt) JwtFinalHandler(w http.ResponseWriter, r *http.Request) {
@@ -67,9 +70,31 @@ func (j *Jwt) JwtHandler(w http.ResponseWriter, r *http.Request) {
 	// check if the identity is present
 	idnReply, err := j.Request.IdentityRequestWithContext(
 		context.Background(),
-		j.Topics["identityExists"],
+		j.Topics["identityGet"],
 		idnReq,
 	)
+	if handleIdentityErr(w, idnReply, idnReq.Identifier, err) {
+		return
+	}
+	// Now check for user id
+	uid := idnReply.Identity.Data.Attributes.UserId
+	uReply, err := j.Request.UserRequestWithContext(
+		context.Background(),
+		j.Topics["userExists"],
+		&pubsub.IdRequest{Id: uid},
+	)
+	if handleUserErr(w, uReply, uid, err) {
+		return
+	}
+	// Fetch the user
+	duReply, err := j.Request.UserRequestWithContext(
+		context.Background(),
+		j.Topics["userGet"],
+		&pubsub.IdRequest{Id: uid},
+	)
+	if handleUserErr(w, duReply, uid, err) {
+		return
+	}
 
 	claims := jwt.StandardClaims{
 		Issuer:    "dictyBase",
@@ -88,18 +113,19 @@ func (j *Jwt) JwtHandler(w http.ResponseWriter, r *http.Request) {
 		apherror.ErrJWTToken.New("error in signing jwt token %s", err.Error())
 		return
 	}
-	ut := &UserToken{
-		Token: token,
-		User:  user,
+	auser := &AuthUser{
+		Token:    token,
+		User:     duReply.User,
+		Identity: idnReply.Identity,
 	}
 	w.Header().Set("Content-Type", "application/vnd.api+json")
-	if err := json.NewEncoder(w).Encode(ut); err != nil {
+	if err := json.NewEncoder(w).Encode(auser); err != nil {
 		apherror.ErrJSONEncoding.New(err.Error())
 		return
 	}
 }
 
-func handleUserErr(w http.ResponseWriter, reply pubsub.UserReply, id string, err error) bool {
+func handleUserErr(w http.ResponseWriter, reply *pubsub.UserReply, id int64, err error) bool {
 	if err != nil {
 		apherror.JSONAPIError(w, apherror.ErrMessagingReply.New("error in getting user reply %s", err.Error()))
 		return true
@@ -109,13 +135,13 @@ func handleUserErr(w http.ResponseWriter, reply pubsub.UserReply, id string, err
 		return true
 	}
 	if !reply.Exist {
-		apherror.JSONAPIError(w, apherror.ErrMessagingReply.New("dictybase user %s not found", id))
+		apherror.JSONAPIError(w, apherror.ErrNotFound.New("dictybase user %s not found", id))
 		return true
 	}
 	return false
 }
 
-func handleIdentityErr(w http.ResponseWriter, reply pubsub.IdentityReply, id string, err error) bool {
+func handleIdentityErr(w http.ResponseWriter, reply *pubsub.IdentityReply, id string, err error) bool {
 	if err != nil {
 		apherror.JSONAPIError(w, apherror.ErrMessagingReply.New("error in getting identifier reply %s", err.Error()))
 		return true
@@ -125,7 +151,7 @@ func handleIdentityErr(w http.ResponseWriter, reply pubsub.IdentityReply, id str
 		return true
 	}
 	if !reply.Exist {
-		apherror.JSONAPIError(w, apherror.ErrMessagingReply.New("identifier %s not found", id))
+		apherror.JSONAPIError(w, apherror.ErrNotFound.New("identifier %s not found", id))
 		return true
 	}
 	return false
