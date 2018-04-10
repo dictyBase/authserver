@@ -12,6 +12,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dictyBase/authserver/handlers"
+	"github.com/dictyBase/authserver/message/nats"
 	"github.com/dictyBase/authserver/middlewares"
 	"github.com/dictyBase/go-middlewares/middlewares/logrus"
 	"github.com/go-chi/chi"
@@ -22,6 +23,16 @@ import (
 
 // Runs the http server
 func RunServer(c *cli.Context) error {
+	reqm, err := nats.NewRequest(
+		c.String("nats-host"),
+		c.String("nats-port"),
+	)
+	if err != nil {
+		return cli.NewExitError(
+			fmt.Sprintf("cannot connect to messaging server %s", err.Error()),
+			2,
+		)
+	}
 	config, err := readSecretConfig(c)
 	if err != nil {
 		return cli.NewExitError(fmt.Sprintf("Unable to secret config file %q\n", err), 2)
@@ -30,6 +41,8 @@ func RunServer(c *cli.Context) error {
 	if err != nil {
 		return cli.NewExitError(fmt.Sprintf("Unable to parse keys %q\n", err), 2)
 	}
+	// sets the reply messaging connection
+	jt.Request = reqm
 
 	loggerMw, err := getLoggerMiddleware(c)
 	if err != nil {

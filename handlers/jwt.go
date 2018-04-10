@@ -9,6 +9,7 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/dictyBase/apihelpers/apherror"
+	"github.com/dictyBase/authserver/message"
 	"github.com/dictyBase/authserver/user"
 	"github.com/go-chi/jwtauth"
 	"github.com/rs/xid"
@@ -29,6 +30,7 @@ type Jwt struct {
 	VerifyKey     *rsa.PublicKey
 	SignKey       *rsa.PrivateKey
 	UserParamater string
+	Request       message.Request
 }
 
 type UserToken struct {
