@@ -1,11 +1,16 @@
 package handlers
 
 import (
+	"context"
 	"crypto/rsa"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
+
+	"google.golang.org/grpc/status"
+
+	"github.com/dictyBase/go-genproto/dictybaseapis/pubsub"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/dictyBase/apihelpers/apherror"
@@ -31,6 +36,7 @@ type Jwt struct {
 	SignKey       *rsa.PrivateKey
 	UserParamater string
 	Request       message.Request
+	Topics        map[string]string
 }
 
 type UserToken struct {
@@ -54,6 +60,17 @@ func (j *Jwt) JwtHandler(w http.ResponseWriter, r *http.Request) {
 		apherror.JSONAPIError(w, apherror.ErrReqContext.New("unable to retrieve %s from context", "user"))
 		return
 	}
+	idnReq := &pubsub.IdentityReq{Provider: user.Provider, Identifier: user.Email}
+	if user.Provider == "orcid" {
+		idnReq.Identifier = user.Id
+	}
+	// check if the identity is present
+	idnReply, err := j.Request.IdentityRequestWithContext(
+		context.Background(),
+		j.Topics["identityExists"],
+		idnReq,
+	)
+
 	claims := jwt.StandardClaims{
 		Issuer:    "dictyBase",
 		Subject:   "dictyBase login token",
@@ -80,4 +97,36 @@ func (j *Jwt) JwtHandler(w http.ResponseWriter, r *http.Request) {
 		apherror.ErrJSONEncoding.New(err.Error())
 		return
 	}
+}
+
+func handleUserErr(w http.ResponseWriter, reply pubsub.UserReply, id string, err error) bool {
+	if err != nil {
+		apherror.JSONAPIError(w, apherror.ErrMessagingReply.New("error in getting user reply %s", err.Error()))
+		return true
+	}
+	if reply.Status != nil {
+		apherror.JSONAPIError(w, apherror.ErrMessagingReply.New(status.ErrorProto(reply.Status).Error()))
+		return true
+	}
+	if !reply.Exist {
+		apherror.JSONAPIError(w, apherror.ErrMessagingReply.New("dictybase user %s not found", id))
+		return true
+	}
+	return false
+}
+
+func handleIdentityErr(w http.ResponseWriter, reply pubsub.IdentityReply, id string, err error) bool {
+	if err != nil {
+		apherror.JSONAPIError(w, apherror.ErrMessagingReply.New("error in getting identifier reply %s", err.Error()))
+		return true
+	}
+	if reply.Status != nil {
+		apherror.JSONAPIError(w, apherror.ErrMessagingReply.New(status.ErrorProto(reply.Status).Error()))
+		return true
+	}
+	if !reply.Exist {
+		apherror.JSONAPIError(w, apherror.ErrMessagingReply.New("identifier %s not found", id))
+		return true
+	}
+	return false
 }
