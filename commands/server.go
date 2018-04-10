@@ -43,7 +43,12 @@ func RunServer(c *cli.Context) error {
 	}
 	// sets the reply messaging connection
 	jt.Request = reqm
-
+	jt.Topics = map[string]string{
+		"userExists":     "UserService.Exist",
+		"userGet":        "UserService.Get",
+		"identityExists": "IdentityService.Exist",
+		"identityGet":    "IdentityService.Get",
+	}
 	loggerMw, err := getLoggerMiddleware(c)
 	if err != nil {
 		return cli.NewExitError(fmt.Sprintf("unable to get logger middlware %s", err), 2)
