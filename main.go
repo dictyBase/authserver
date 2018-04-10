@@ -48,6 +48,16 @@ func main() {
 					Usage: "server port",
 					Value: 9999,
 				},
+				cli.StringFlag{
+					Name:   "messaging-host",
+					EnvVar: "NATS_SERVICE_HOST",
+					Usage:  "host address for messaging server",
+				},
+				cli.StringFlag{
+					Name:   "messaging-port",
+					EnvVar: "NATS_SERVICE_PORT",
+					Usage:  "port for messaging server",
+				},
 			},
 		},
 		{
