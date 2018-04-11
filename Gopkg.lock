@@ -17,7 +17,7 @@
   branch = "master"
   name = "github.com/dictyBase/apihelpers"
   packages = ["apherror"]
-  revision = "4915a6ad41f1f7509f3f36dd7766a8bb54d508fc"
+  revision = "680b76cc74dc2d669509134104809d730cfce382"
 
 [[projects]]
   branch = "master"

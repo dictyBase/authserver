@@ -135,7 +135,9 @@ func handleUserErr(w http.ResponseWriter, reply *pubsub.UserReply, id int64, err
 		return true
 	}
 	if !reply.Exist {
-		apherror.JSONAPIError(w, apherror.ErrNotFound.New("dictybase user %s not found", id))
+		msg := "user is not registered or not linked with dictybase account"
+		w.Header().Set("WWW-Authenticate", msg)
+		apherror.JSONAPIError(w, apherror.ErrAuthentication.New("cannot authenticate user id %s", id))
 		return true
 	}
 	return false
@@ -151,7 +153,9 @@ func handleIdentityErr(w http.ResponseWriter, reply *pubsub.IdentityReply, id st
 		return true
 	}
 	if !reply.Exist {
-		apherror.JSONAPIError(w, apherror.ErrNotFound.New("identifier %s not found", id))
+		msg := fmt.Sprintf("identity %s is not registered or not linked with dictybase account", id)
+		w.Header().Set("WWW-Authenticate", msg)
+		apherror.JSONAPIError(w, apherror.ErrAuthentication.New("cannot authenticate identifier %s", id))
 		return true
 	}
 	return false
