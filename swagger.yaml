@@ -1,0 +1,267 @@
+# this is an example of the Uber API
+# as a demonstration of an API spec in YAML
+swagger: '2.0'
+info:
+  title: Authserver API
+  description: An authorization server to generate and validate JWT token
+  version: "4.0.0"
+# the domain of the service
+#host: api.uber.com
+# array of all schemes that your API supports
+schemes:
+  - https
+  - http
+# will be prefixed to all paths
+#basePath: /v1
+produces:
+  - application/json
+paths:
+  /tokens/validate:
+    get:
+      summary: Validate JWT
+      parameters:
+        - name: "Authorization: BEARER"
+          in: header
+          description: JWT(json web tokn).
+          required: true
+          type: string
+      tags:
+        - Validate
+      responses:
+        200:
+          description: jwt is valid
+        500:
+          description: jwt is absent or invalid
+          schema:
+            $ref: '#/definitions/HTTPError'
+  /tokens/{provider}:
+    post:
+      summary: Generates a JWT in exchange of oauth code
+      parameters:
+        - name: client_id
+          in: query
+          description: |
+            The client ID you received during application registration 
+            from every provider.
+          required: true
+          type: string
+        - name: scopes
+          in: query
+          description: Scope of the application.
+          required: true
+          type: string
+        - name: state
+          in: query
+          description: |
+              An unguessable random string. It is used to protect against cross-site request forgery attacks. It is passed to the provider during first login.
+          required: true
+          type: string
+        - name: redirect_url
+          in: query
+          description: |
+              The URL in your application where users will be sent after authorization, 
+              generally provided during the registration of the application.
+          required: true
+          type: string
+        - name: code
+          in: query
+          description: |
+              The code that is received as response from the first login.
+          required: true
+          type: string
+        - name: provider
+          in: path
+          description: Third party oauth provider.
+          required: true
+          type: string
+          enum: [google, facebook, linkedin, orcid]
+      tags:
+        - Provider
+      responses:
+        200:
+          description: Return a jwt with user information.
+          schema:
+            $ref: '#/definitions/AuthUser'
+        401:
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/HTTPError'
+        500:
+          description: Various internal server errors
+          schema:
+            $ref: '#/definitions/HTTPError'
+definitions:
+  AuthUser:
+    type: object
+    properties:
+      token:
+        type: string
+        description: JWT(json web token)
+      identity:
+        $ref: '#/definitions/Identity'
+      user:
+        $ref: '#/definitions/User'
+  ErrorSource:
+    type: object
+    properties:
+      pointer:
+        type: string
+        description: A resource url that is the cause of the error
+      parameter:
+        type: string
+        description: Query parameter of the resource url
+  Error:
+    type: object
+    properties:
+      status:
+        type: string
+        description: HTTP status
+      title:
+        type: string
+        description: Short title of the error
+      detail:
+        type: string
+        description: Detail description of the error
+      source:
+        $ref: "#/definitions/ErrorSource"
+      meta:
+        description: Arbitary key value data related to error
+        type: object
+        additionalProperties:
+          type: string
+  HTTPError:
+    type: object
+    properties:
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/Error"
+  Identity:
+    type: object
+    properties:
+      data:
+        $ref: '#/definitions/IdentityData'
+      links:
+        $ref: '#/definitions/jsonapiLinks'
+  IdentityAttributes:
+    type: object
+    properties:
+      identifier:
+        type: string
+        description: |
+          An unique identifier provided by the third party.
+          Generally it's an email id, however it could be something else
+          specifically provided by an provider.
+      provider:
+        type: string
+        description: 'Name of the provider, for example, orcid, google, facebook etc.'
+      user_id:
+        type: string
+        format: int64
+        description: |
+          The id of the user to which this identity is connected.
+          This id could be used to fetch a complete user response from the user
+          service
+      created_at:
+        type: string
+        format: date-time
+        description: Timestamp for creation
+      updated_at:
+        type: string
+        format: date-time
+        description: Timestamp for update
+  IdentityData:
+    type: object
+    properties:
+      type:
+        type: string
+        description: The resource name
+      id:
+        type: string
+        format: int64
+        description: Unique id
+      attributes:
+        $ref: '#/definitions/IdentityAttributes'
+      links:
+        $ref: '#/definitions/jsonapiLinks'
+  jsonapiLinks:
+    type: object
+    properties:
+      self:
+        type: string
+        description: A http link. It points to the resource itself.
+      related:
+        type: string
+        description: A http link. It points to a related resource.
+  User:
+    type: object
+    properties:
+      data:
+        $ref: '#/definitions/UserData'
+      links:
+        $ref: '#/definitions/jsonapiLinks'
+  UserAttributes:
+    type: object
+    properties:
+      first_name:
+        type: string
+        description: First name.
+      last_name:
+        type: string
+        description: Last name.
+      email:
+        type: string
+        description: Email.
+      organization:
+        type: string
+        description: Organization in which the user belong.
+      group_name:
+        type: string
+        description: Group in which the user belong.
+      first_address:
+        type: string
+        description: Address.
+      second_address:
+        type: string
+        description: More address.
+      city:
+        type: string
+        description: City.
+      state:
+        type: string
+        description: State.
+      zipcode:
+        type: string
+        description: Zipcode.
+      country:
+        type: string
+        description: Country.
+      phone:
+        type: string
+        description: Phone no.
+      is_active:
+        type: boolean
+        format: boolean
+        description: Current status of user.
+      created_at:
+        type: string
+        format: date-time
+        description: Timestamp for creation.
+      updated_at:
+        type: string
+        format: date-time
+        description: Timestamp for update.
+  UserData:
+    type: object
+    properties:
+      type:
+        type: string
+        description: The resource name.
+      id:
+        type: string
+        format: int64
+        description: Unique id.
+      attributes:
+        $ref: '#/definitions/UserAttributes'
+      links:
+        $ref: '#/definitions/jsonapiLinks'
