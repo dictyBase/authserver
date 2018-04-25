@@ -9,6 +9,9 @@ ADD commands commands
 ADD middlewares middlewares
 ADD oauth2 oauth2
 ADD user user
+ADD message message
+ADD validate validate
+ADD handlers handlers
 RUN dep ensure \
     && go build -o app
 
