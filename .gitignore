@@ -1,5 +1,4 @@
 config
 keys
 params
-authserver*
 vendor/
