@@ -1,0 +1,50 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "authserver.fullname" . }}
+  labels:
+    app: {{ template "authserver.fullname" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "authserver.fullname" . }}
+        group: {{.Values.group | quote}}
+        provider: {{.Values.provider | quote}}
+        mode: {{.Values.mode |quote}}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: [
+            "run",
+            "--public-key", 
+            "/etc/authfile/authserver.jwt.publicKey", 
+            "--private-key", 
+            "/etc/authfile/authserver.jwt.privateKey",
+            "--config", 
+            "/etc/authfile/authserver.oauth.configFile",
+            "--port",
+            "{{ .Values.service.port }}"
+            ]
+          ports:
+            - name: {{ .Values.service.name }}
+              containerPort: {{ .Values.service.port }}
+          livenessProbe:
+            httpGet:
+              path: "{{ .Values.healthCheck.path }}"
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: {{ .Values.healthCheck.delay }}
+          volumeMounts:
+            - name: oauth
+              mountPath: /etc/authfile
+              readOnly: true
+      volumes:
+        - name: oauth
+          secret: 
+            secretName: {{ template "authserver.name" . }}

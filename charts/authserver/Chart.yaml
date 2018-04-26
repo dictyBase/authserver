@@ -1,0 +1,11 @@
+apiVersion: v1
+appVersion: 4.0.1
+description: A Helm chart for dictybase authserver
+maintainers:
+- email: siddhartha-basu@northwestern.edu
+  name: Siddhartha Basu
+name: authserver
+sources:
+- https://github.com/dictyBase/authserver
+- https://hub.docker.com/r/dictybase/authserver
+version: 3.0.1
