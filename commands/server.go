@@ -24,8 +24,8 @@ import (
 // Runs the http server
 func RunServer(c *cli.Context) error {
 	reqm, err := nats.NewRequest(
-		c.String("nats-host"),
-		c.String("nats-port"),
+		c.String("messaging-host"),
+		c.String("messaging-port"),
 	)
 	if err != nil {
 		return cli.NewExitError(
