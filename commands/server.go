@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"gopkg.in/urfave/cli.v1"
 
@@ -19,6 +20,7 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/jwtauth"
+	gnats "github.com/nats-io/go-nats"
 )
 
 // Runs the http server
@@ -26,6 +28,8 @@ func RunServer(c *cli.Context) error {
 	reqm, err := nats.NewRequest(
 		c.String("messaging-host"),
 		c.String("messaging-port"),
+		gnats.MaxReconnects(-1),
+		gnats.ReconnectWait(2*time.Second),
 	)
 	if err != nil {
 		return cli.NewExitError(
@@ -67,6 +71,10 @@ func RunServer(c *cli.Context) error {
 	r.Use(cors.Handler)
 	// Default health check
 	r.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		if !reqm.IsActive() {
+			http.Error(w, "messaging server is disconnected", http.StatusInternalServerError)
+			return
+		}
 		w.Write([]byte("okay"))
 	})
 	googleMw := middlewares.GetGoogleMiddleware(config)
