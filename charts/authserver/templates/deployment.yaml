@@ -40,6 +40,7 @@ spec:
               path: "{{ .Values.healthCheck.path }}"
               port: {{ .Values.service.port }}
             initialDelaySeconds: {{ .Values.healthCheck.delay }}
+            periodSeconds: {{ .Values.healthCheck.period }}
           volumeMounts:
             - name: oauth
               mountPath: /etc/authfile
