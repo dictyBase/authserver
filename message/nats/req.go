@@ -51,3 +51,7 @@ func (n *natsRequest) IdentityRequestWithContext(ctx context.Context, subj strin
 	err := n.econn.RequestWithContext(ctx, subj, r, reply)
 	return reply, err
 }
+
+func (n *natsRequest) IsActive() bool {
+	return n.econn.Conn.IsConnected()
+}
