@@ -149,13 +149,19 @@ func handleIdentityErr(w http.ResponseWriter, reply *pubsub.IdentityReply, id st
 		return true
 	}
 	if reply.Status != nil {
+		if !reply.Exist {
+			msg := fmt.Sprintf("identity %s is not registered or not linked with dictybase account", id)
+			w.Header().Set("WWW-Authenticate", msg)
+			apherror.JSONAPIError(
+				w,
+				apherror.ErrAuthentication.New(
+					"cannot authenticate identifier %s with error %s",
+					id,
+					status.ErrorProto(reply.Status).Error(),
+				))
+			return true
+		}
 		apherror.JSONAPIError(w, apherror.ErrMessagingReply.New(status.ErrorProto(reply.Status).Error()))
-		return true
-	}
-	if !reply.Exist {
-		msg := fmt.Sprintf("identity %s is not registered or not linked with dictybase account", id)
-		w.Header().Set("WWW-Authenticate", msg)
-		apherror.JSONAPIError(w, apherror.ErrAuthentication.New("cannot authenticate identifier %s", id))
 		return true
 	}
 	return false
