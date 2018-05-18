@@ -51,7 +51,7 @@ func RunServer(c *cli.Context) error {
 		"userExists":     "UserService.Exist",
 		"userGet":        "UserService.Get",
 		"identityExists": "IdentityService.Exist",
-		"identityGet":    "IdentityService.Get",
+		"identityGet":    "IdentityService.GetIdentity",
 	}
 	loggerMw, err := getLoggerMiddleware(c)
 	if err != nil {

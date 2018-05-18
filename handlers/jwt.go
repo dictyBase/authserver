@@ -131,13 +131,19 @@ func handleUserErr(w http.ResponseWriter, reply *pubsub.UserReply, id int64, err
 		return true
 	}
 	if reply.Status != nil {
+		if !reply.Exist {
+			msg := "user is not registered or not linked with dictybase account"
+			w.Header().Set("WWW-Authenticate", msg)
+			apherror.JSONAPIError(
+				w,
+				apherror.ErrAuthentication.New(
+					"cannot authenticate user id %s with error %s",
+					id,
+					status.ErrorProto(reply.Status).Error(),
+				))
+			return true
+		}
 		apherror.JSONAPIError(w, apherror.ErrMessagingReply.New(status.ErrorProto(reply.Status).Error()))
-		return true
-	}
-	if !reply.Exist {
-		msg := "user is not registered or not linked with dictybase account"
-		w.Header().Set("WWW-Authenticate", msg)
-		apherror.JSONAPIError(w, apherror.ErrAuthentication.New("cannot authenticate user id %s", id))
 		return true
 	}
 	return false
