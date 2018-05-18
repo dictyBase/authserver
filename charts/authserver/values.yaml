@@ -8,7 +8,7 @@ mode: standalone
 replicaCount: 1
 image:
   repository: dictybase/authserver
-  tag: 4.0.3
+  tag: 4.0.4
   pullPolicy: IfNotPresent
 service:
   name: authserver
