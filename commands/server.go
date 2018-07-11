@@ -81,30 +81,17 @@ func RunServer(c *cli.Context) error {
 	fbookMw := middlewares.GetFacebookMiddleware(config)
 	linkedInMw := middlewares.GetLinkedinMiddleware(config)
 	OrcidMw := middlewares.GetOrcidMiddleware(config)
-	r.Route("/tokens/google", func(r chi.Router) {
-		r.Use(googleMw.ParamsMiddleware, googleMw.GoogleMiddleware)
-		r.Post("/", jt.JwtHandler)
-	})
-
-	r.Route("/tokens/facebook", func(r chi.Router) {
+	r.Route("/tokens", func(r chi.Router) {
+		r.With(googleMw.ParamsMiddleware).
+			With(googleMw.GoogleMiddleware).r.Post("/google", jt.JwtHandler)
 		r.With(fbookMw.ParamsMiddleware).
-			With(fbookMw.FacebookMiddleware).
-			Post("/", jt.JwtHandler)
-	})
-
-	r.Route("/tokens/linkedin", func(r chi.Router) {
+			With(fbookMw.FacebookMiddleware).Post("/facebook", jt.JwtHandler)
 		r.With(linkedInMw.ParamsMiddleware).
-			With(linkedInMw.LinkedInMiddleware).
-			Post("/", jt.JwtHandler)
-	})
-
-	r.Route("/tokens/orcid", func(r chi.Router) {
+			With(linkedInMw.LinkedInMiddleware).Post("/linkedin", jt.JwtHandler)
 		r.With(OrcidMw.ParamsMiddleware).
-			With(OrcidMw.OrcidMiddleware).
-			Post("/", jt.JwtHandler)
+			With(OrcidMw.OrcidMiddleware).Post("/orcid", jt.JwtHandler)
 	})
-
-	r.Route("/tokens/validate", func(r chi.Router) {
+	r.Route("/authorize", func(r chi.Router) {
 		tokenAuth := jwtauth.New("RS512", jt.SignKey, jt.VerifyKey)
 		r.With(jwtauth.Verifier(tokenAuth), jwtauth.Authenticator).
 			Get("/", jt.JwtFinalHandler)
