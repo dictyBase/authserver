@@ -48,9 +48,13 @@ type AuthUser struct {
 }
 
 func (j *Jwt) JwtFinalHandler(w http.ResponseWriter, r *http.Request) {
-	_, _, err := jwtauth.FromContext(r.Context())
+	token, _, err := jwtauth.FromContext(r.Context())
 	if err != nil {
-		apherror.JSONAPIError(w, apherror.ErrReqContext.New("unable to retrieve jwt from context for validation"))
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+	if token == nil || !token.Valid {
+		http.Error(w, "invalid token", http.StatusUnauthorized)
 		return
 	}
 	fmt.Fprintf(w, "jwt is %s", "valid")

@@ -84,7 +84,7 @@ func RunServer(c *cli.Context) error {
 	OrcidMw := middlewares.GetOrcidMiddleware(config)
 	r.Route("/tokens", func(r chi.Router) {
 		r.With(googleMw.ParamsMiddleware).
-			With(googleMw.GoogleMiddleware).r.Post("/google", jt.JwtHandler)
+			With(googleMw.GoogleMiddleware).Post("/google", jt.JwtHandler)
 		r.With(fbookMw.ParamsMiddleware).
 			With(fbookMw.FacebookMiddleware).Post("/facebook", jt.JwtHandler)
 		r.With(linkedInMw.ParamsMiddleware).
