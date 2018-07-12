@@ -94,7 +94,8 @@ func RunServer(c *cli.Context) error {
 	})
 	r.Route("/authorize", func(r chi.Router) {
 		tokenAuth := jwtauth.New("RS512", jt.SignKey, jt.VerifyKey)
-		r.With(jwtauth.Verifier(tokenAuth), jwtauth.Authenticator).
+		r.With(middlewares.AuthorizeMiddleware).
+			With(jwtauth.Verifier(tokenAuth), jwtauth.Authenticator).
 			Get("/", jt.JwtFinalHandler)
 	})
 	log.Printf("Starting web server on port %d\n", c.Int("port"))
