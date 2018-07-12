@@ -1,4 +1,4 @@
-FROM golang:1.9.5-alpine3.7
+FROM golang:1.10.3-alpine3.7
 LABEL maintainer="Siddhartha Basu <siddhartha-basu@northwestern.edu>"
 RUN apk add --no-cache git build-base \
     && go get github.com/golang/dep/cmd/dep

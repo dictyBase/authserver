@@ -2,3 +2,4 @@ config
 keys
 params
 vendor/
+authserver
