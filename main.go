@@ -15,7 +15,7 @@ func main() {
 	app.Version = "4.0.0"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name:  "log,l",
+			Name:  "log-file,l",
 			Usage: "Name of the log file(optional), default goes to stderr",
 		},
 		cli.StringFlag{

@@ -3,19 +3,20 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"time"
 
+	loggerMw "github.com/dictyBase/go-middlewares/middlewares/logrus"
 	"gopkg.in/urfave/cli.v1"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dictyBase/authserver/handlers"
 	"github.com/dictyBase/authserver/message/nats"
 	"github.com/dictyBase/authserver/middlewares"
-	"github.com/dictyBase/go-middlewares/middlewares/logrus"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
@@ -147,25 +148,24 @@ func parseJwtKeys(c *cli.Context) (*handlers.Jwt, error) {
 	return jh, err
 }
 
-// Gets a logrus logger middlware, can output to a file, default is stderr
-func getLoggerMiddleware(c *cli.Context) (*logrus.Logger, error) {
-	var logger *logrus.Logger
-	if c.GlobalIsSet("log") {
-		w, err := os.Open(c.GlobalString("log"))
+// GetLoggerMiddleware gets a net/http compatible instance of logrus
+func getLoggerMiddleware(c *cli.Context) (*loggerMw.Logger, error) {
+	var logger *loggerMw.Logger
+	var w io.Writer
+	if c.IsSet("log-file") {
+		fw, err := os.Create(c.String("log-file"))
 		if err != nil {
-			return logger, fmt.Errorf("could not open log file for writing %s\n", err)
+			return logger,
+				fmt.Errorf("could not open log file  %s %s", c.String("log-file"), err)
 		}
-		if c.GlobalString("log-format") == "text" {
-			logger = logrus.NewFileLogger(w)
-		} else {
-			logger = logrus.NewJSONFileLogger(w)
-		}
+		w = io.MultiWriter(fw, os.Stderr)
 	} else {
-		if c.GlobalString("log-format") == "text" {
-			logger = logrus.NewLogger()
-		} else {
-			logger = logrus.NewJSONLogger()
-		}
+		w = os.Stderr
+	}
+	if c.String("log-format") == "json" {
+		logger = loggerMw.NewJSONFileLogger(w)
+	} else {
+		logger = loggerMw.NewFileLogger(w)
 	}
 	return logger, nil
 }
