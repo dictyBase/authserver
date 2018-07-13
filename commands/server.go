@@ -112,8 +112,9 @@ func RunServer(c *cli.Context) error {
 }
 
 // Prints all the registered routes
-func walkFunc(method string, route string, handler http.Handler, middlewares ...func(http.Hanlder) http.Handler) error {
+func walkFunc(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
 	log.Printf("method: %s - - route: %s\n", method, route)
+	return nil
 }
 
 // Reads the configuration file containing the various client secret keys
