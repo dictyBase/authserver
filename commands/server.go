@@ -103,9 +103,17 @@ func RunServer(c *cli.Context) error {
 	//With(jwtauth.Verifier(tokenAuth), jwtauth.Authenticator).
 	//Get("/", jt.JwtFinalHandler)
 	//})
+	if err := chi.Walk(r, walkFunc); err != nil {
+		log.Printf("error in printing routes %s\n", err)
+	}
 	log.Printf("Starting web server on port %d\n", c.Int("port"))
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", c.Int("port")), r))
 	return nil
+}
+
+// Prints all the registered routes
+func walkFunc(method string, route string, handler http.Handler, middlewares ...func(http.Hanlder) http.Handler) error {
+	log.Printf("method: %s - - route: %s\n", method, route)
 }
 
 // Reads the configuration file containing the various client secret keys
