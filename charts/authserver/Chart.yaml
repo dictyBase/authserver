@@ -8,4 +8,4 @@ name: authserver
 sources:
 - https://github.com/dictyBase/authserver
 - https://hub.docker.com/r/dictybase/authserver
-version: 3.0.3
+version: 3.0.4
