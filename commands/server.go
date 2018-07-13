@@ -96,7 +96,7 @@ func RunServer(c *cli.Context) error {
 		tokenAuth := jwtauth.New("RS512", jt.SignKey, jt.VerifyKey)
 		r.With(middlewares.AuthorizeMiddleware).
 			With(jwtauth.Verifier(tokenAuth), jwtauth.Authenticator).
-			Get("/", jt.JwtFinalHandler)
+			Post("/", jt.JwtFinalHandler)
 	})
 	if err := chi.Walk(r, walkFunc); err != nil {
 		log.Printf("error in printing routes %s\n", err)

@@ -2,14 +2,11 @@ package middlewares
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 )
 
 func AuthorizeMiddleware(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		log.Println("getting authorized")
-		w.Write([]byte("all in good"))
 		hdr := r.Header
 		if hdr.Get("X-Scheme") != "https" {
 			http.Error(
