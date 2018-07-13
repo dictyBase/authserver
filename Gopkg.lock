@@ -34,7 +34,7 @@
   branch = "master"
   name = "github.com/dictyBase/go-middlewares"
   packages = ["middlewares/logrus"]
-  revision = "70034e56b292b2f84533ff2b2f4c29d01ecf318b"
+  revision = "0fd6848b3e92fbbf0dccb0c90b9c03ab8553dbee"
 
 [[projects]]
   name = "github.com/go-chi/chi"
@@ -248,12 +248,6 @@
   ]
   revision = "d11072e7ca9811b1100b80ca0269ac831f06d024"
   version = "v1.11.3"
-
-[[projects]]
-  name = "gopkg.in/Sirupsen/logrus.v0"
-  packages = ["."]
-  revision = "ba1b36c82c5e05c4f912a88eab0dcd91a171688f"
-  version = "v0.11.5"
 
 [[projects]]
   name = "gopkg.in/urfave/cli.v1"

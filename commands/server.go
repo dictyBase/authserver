@@ -20,7 +20,6 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
-	"github.com/go-chi/jwtauth"
 	gnats "github.com/nats-io/go-nats"
 )
 
@@ -38,10 +37,10 @@ func RunServer(c *cli.Context) error {
 			2,
 		)
 	}
-	config, err := readSecretConfig(c)
-	if err != nil {
-		return cli.NewExitError(fmt.Sprintf("Unable to secret config file %q\n", err), 2)
-	}
+	//config, err := readSecretConfig(c)
+	//if err != nil {
+	//return cli.NewExitError(fmt.Sprintf("Unable to secret config file %q\n", err), 2)
+	//}
 	jt, err := parseJwtKeys(c)
 	if err != nil {
 		return cli.NewExitError(fmt.Sprintf("Unable to parse keys %q\n", err), 2)
@@ -78,26 +77,32 @@ func RunServer(c *cli.Context) error {
 		}
 		w.Write([]byte("okay"))
 	})
-	googleMw := middlewares.GetGoogleMiddleware(config)
-	fbookMw := middlewares.GetFacebookMiddleware(config)
-	linkedInMw := middlewares.GetLinkedinMiddleware(config)
-	OrcidMw := middlewares.GetOrcidMiddleware(config)
-	r.Route("/tokens", func(r chi.Router) {
-		r.With(googleMw.ParamsMiddleware).
-			With(googleMw.GoogleMiddleware).Post("/google", jt.JwtHandler)
-		r.With(fbookMw.ParamsMiddleware).
-			With(fbookMw.FacebookMiddleware).Post("/facebook", jt.JwtHandler)
-		r.With(linkedInMw.ParamsMiddleware).
-			With(linkedInMw.LinkedInMiddleware).Post("/linkedin", jt.JwtHandler)
-		r.With(OrcidMw.ParamsMiddleware).
-			With(OrcidMw.OrcidMiddleware).Post("/orcid", jt.JwtHandler)
+	r.Get("/bath", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("bath is fine"))
 	})
-	r.Route("/authorize", func(r chi.Router) {
-		tokenAuth := jwtauth.New("RS512", jt.SignKey, jt.VerifyKey)
-		r.With(middlewares.AuthorizeMiddleware).
-			With(jwtauth.Verifier(tokenAuth), jwtauth.Authenticator).
-			Get("/", jt.JwtFinalHandler)
+	r.Post("/auth", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("auth is fine"))
 	})
+	//googleMw := middlewares.GetGoogleMiddleware(config)
+	//fbookMw := middlewares.GetFacebookMiddleware(config)
+	//linkedInMw := middlewares.GetLinkedinMiddleware(config)
+	//OrcidMw := middlewares.GetOrcidMiddleware(config)
+	//r.Route("/tokens", func(r chi.Router) {
+	//r.With(googleMw.ParamsMiddleware).
+	//With(googleMw.GoogleMiddleware).Post("/google", jt.JwtHandler)
+	//r.With(fbookMw.ParamsMiddleware).
+	//With(fbookMw.FacebookMiddleware).Post("/facebook", jt.JwtHandler)
+	//r.With(linkedInMw.ParamsMiddleware).
+	//With(linkedInMw.LinkedInMiddleware).Post("/linkedin", jt.JwtHandler)
+	//r.With(OrcidMw.ParamsMiddleware).
+	//With(OrcidMw.OrcidMiddleware).Post("/orcid", jt.JwtHandler)
+	//})
+	//r.Route("/authorize", func(r chi.Router) {
+	//tokenAuth := jwtauth.New("RS512", jt.SignKey, jt.VerifyKey)
+	//r.With(middlewares.AuthorizeMiddleware).
+	//With(jwtauth.Verifier(tokenAuth), jwtauth.Authenticator).
+	//Get("/", jt.JwtFinalHandler)
+	//})
 	log.Printf("Starting web server on port %d\n", c.Int("port"))
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", c.Int("port")), r))
 	return nil
