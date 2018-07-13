@@ -3,6 +3,7 @@ package middlewares
 import (
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 func AuthorizeMiddleware(h http.Handler) http.Handler {
@@ -20,7 +21,7 @@ func AuthorizeMiddleware(h http.Handler) http.Handler {
 			w.Write([]byte("passthrough for GET method"))
 			return
 		}
-		if hdr.Get("X-Original-Uri") == "/tokens" {
+		if strings.HasPrefix(hdr.Get("X-Original-Uri"), "/tokens") {
 			w.Write([]byte("no validation for /tokens"))
 			return
 		}
