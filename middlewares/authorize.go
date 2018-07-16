@@ -17,6 +17,10 @@ func AuthorizeMiddleware(h http.Handler) http.Handler {
 			)
 			return
 		}
+		if hdr.Get("X-Original-Method") == "OPTIONS" {
+			w.Write([]byte("passthrough for OPTIONS method"))
+			return
+		}
 		if hdr.Get("X-Original-Method") == "GET" {
 			w.Write([]byte("passthrough for GET method"))
 			return
