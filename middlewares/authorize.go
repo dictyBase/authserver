@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -25,10 +26,12 @@ func AuthorizeMiddleware(h http.Handler) http.Handler {
 			w.Write([]byte("passthrough for GET method"))
 			return
 		}
+		log.Printf("original uri %s\n", hdr.Get("X-Original-Uri"))
 		if strings.HasPrefix(hdr.Get("X-Original-Uri"), "/tokens") {
 			w.Write([]byte("no validation for /tokens"))
 			return
 		}
+		log.Println("going for JWT check")
 		h.ServeHTTP(w, r)
 	}
 	return http.HandlerFunc(fn)
