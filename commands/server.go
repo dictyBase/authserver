@@ -95,7 +95,7 @@ func RunServer(c *cli.Context) error {
 	r.Route("/authorize", func(r chi.Router) {
 		tokenAuth := jwtauth.New("RS512", jt.SignKey, jt.VerifyKey)
 		r.With(middlewares.AuthorizeMiddleware).
-			With(jwtauth.Verifier(tokenAuth), jwtauth.Authenticator).
+			With(jwtauth.Verifier(tokenAuth)).
 			Post("/", jt.JwtFinalHandler)
 	})
 	if err := chi.Walk(r, walkFunc); err != nil {
