@@ -9,6 +9,21 @@ import (
 
 func AuthorizeMiddleware(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
+		var hStr []string
+		url := fmt.Sprintf("%v %v %v", r.Method, r.URL, r.Proto)
+		hStr = append(hStr, url)
+
+		// Add the host
+		hStr = append(hStr, fmt.Sprintf("Host: %v", r.Host))
+		// Loop through headers
+		for name, headers := range r.Header {
+			for _, h := range headers {
+				hStr = append(hStr, fmt.Sprintf("%v: %v", name, h))
+			}
+		}
+		log.Printf("\n ***** Headers **** \n%s\n", strings.Join(hStr, "\n"))
+		log.Println("\n **** End **** ")
+
 		hdr := r.Header
 		if hdr.Get("X-Scheme") != "https" {
 			http.Error(
